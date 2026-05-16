@@ -1,42 +1,43 @@
-from contextlib import asynccontextmanager
+from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from app.config import settings
 
-from app.routers import config, health
-
-
-class AppSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-
-    ollama_base_url: str = "http://localhost:11434"
-    whisper_base_url: str = "http://localhost:8080"
-    tts_base_url: str = "http://localhost:5000"
-    data_dir: str = "./data"
-    recordings_dir: str = "./recordings"
-    database_url: str = "sqlite:///./data/speaknest.db"
-    cors_origins: list[str] = ["http://localhost:3000"]
-
-
-settings = AppSettings()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    settings  # ensure settings are initialized (loads .env)
-    yield
-
-
-app = FastAPI(title="SpeakNest API", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.cors_origins.split(",") if settings.cors_origins != "*" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(health.router)
-app.include_router(config.router)
+from app.routers import health as health_router
+from app.routers import chat as chat_router
+from app.routers import audio as audio_router
+
+app.include_router(health_router.router)
+app.include_router(chat_router.router)
+app.include_router(audio_router.router)
+
+@app.on_event("startup")
+async def startup() -> None:
+    from app.config import ensure_dirs
+    ensure_dirs()
+
+    print(f"SpeakNest backend starting...")
+    print(f"  Ollama:    {settings.ollama_base_url}")
+    print(f"  STT:       {settings.stt_base_url}")
+    print(f"  Upload:    {settings.upload_dir}")
+    print(f"  Debug:     {settings.debug}")
+
+
+@app.get("/")
+async def root():
+    return {
+        "name": settings.app_name,
+        "version": "0.1.0",
+        "docs": "/docs",
+    }

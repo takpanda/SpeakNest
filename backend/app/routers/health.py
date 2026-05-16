@@ -1,29 +1,23 @@
-import requests
+from __future__ import annotations
+
+from app.config import settings
+from app.schemas import HealthResponse
+from app.config import ollama_available, stt_available
 
 from fastapi import APIRouter
-from pydantic import BaseModel
 
-router = APIRouter()
-
-
-class HealthCheckResponse(BaseModel):
-    status: str
-    ollama: str
-    backend_port: int
+router = APIRouter(prefix="/api", tags=["health"])
 
 
-@router.get("/health", response_model=HealthCheckResponse)
-async def health_check(backend_port: int = 8000):
-    ollama_status = "unreachable"
-    try:
-        resp = requests.get("http://localhost:11434/api/tags", timeout=3)
-        if resp.status_code == 200:
-            ollama_status = "connected"
-    except Exception:
-        ollama_status = "unreachable"
+@router.get("/health", response_model=HealthResponse)
+async def health():
+    """Health check endpoint returning STT and Ollama status."""
+    o_ready = "ok" if ollama_available() else "not_available"
+    s_ready = "ok" if stt_available() else "not_available"
 
-    return {
-        "status": "healthy" if ollama_status == "connected" else "degraded",
-        "ollama": ollama_status,
-        "backend_port": backend_port,
-    }
+    return HealthResponse(
+        status="ok",
+        ollama=o_ready,
+        stt=s_ready,
+        upload_dir=str(settings.upload_dir),
+    )
