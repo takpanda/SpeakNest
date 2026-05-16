@@ -206,3 +206,9 @@ SpeakNest/
 ---
 
 **完全ローカルフリースタック。** 外部APIキー不要、インターネット接続なしで使用可能。
+
+## BEE-42 対応完了
+
+- MVPプロジェクト土台構築完了
+- PR: https://github.com/takpanda/SpeakNest/pull/1
+- 詳細は上記PRをご確認ください
