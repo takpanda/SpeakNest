@@ -6,7 +6,11 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    model_config = {"env_prefix": "SPEAKNEST_"}
+    model_config = {
+        "env_prefix": "SPEAKNEST_",
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+    }
 
     # Application
     app_name: str = "SpeakNest"

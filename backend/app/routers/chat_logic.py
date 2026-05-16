@@ -42,7 +42,7 @@ async def process_conversation(req: ChatRequest, audio_path: str | None = None) 
         try:
             transcript = await transcribe_audio(audio_path)
         except Exception as e:
-            raise ServiceUnavailableError("STT service failed: STT service is not available") from e
+            raise ServiceUnavailableError(f"STT service failed: {e}") from e
 
     if not transcript.strip():
         raise ValueError("Transcription returned empty text")

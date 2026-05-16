@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import httpx
+import mimetypes
+from pathlib import Path
 from app.config import settings as app_settings
 
 
@@ -14,8 +16,12 @@ async def transcribe_audio(file_path: str) -> str:
     base = app_settings.stt_base_url.rstrip("/")
     url = f"{base}/api/transcribe"
 
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if not mime_type:
+        mime_type = "audio/wav"
+
     with open(file_path, "rb") as f:
-        files = {"file": (file_path.split("/")[-1], f, "audio/wav")}
+        files = {"file": (Path(file_path).name, f, mime_type)}
         data = {"model": app_settings.stt_model, "language": "en"}
 
         async with httpx.AsyncClient(timeout=60.0) as client:

@@ -68,24 +68,19 @@ npm run dev
 | 変数 | 説明 | デフォルト |
 |------|------|-----------|
 | `PYTHON_VERSION` | Python バージョン | `3.12` |
-| `OLLAMA_BASE_URL` | Ollama サーバーのアドレス | `http://localhost:11434` |
-| `OLLAMA_MODEL` | 使用するLLMモデル | `qwen2.5` |
-| `OLLAMA_TEMPERATURE` | LLM のTemperature | `0.7` |
-| `BACKEND_PORT` | Backend のポート | `8000` |
-| `FRONTEND_PORT` | Frontend のポート | `3000` |
-| `DATA_DIR` | 学習データ保存先 | `./data` |
-| `RECORDINGS_DIR` | 録音ファイル保存先 | `./recordings` |
-| `CORS_ALLOW_ORIGINS` | CORS 許可オリジン | `http://localhost:3000,http://frontend:3000` |
-| `WHISPER_MODEL` | whispered モデルサイズ | `tiny` |
-| `WHISPER_LANG` | 学習言語 | `auto` |
-| `TTS_MODEL` | 音声合成モデル | `piper-en` |
-| `TTS_SPEED` | 音声合成速度 | `1.0` |
+| `SPEAKNEST_OLLAMA_BASE_URL` | Ollama サーバーのアドレス | `http://localhost:11434` |
+| `SPEAKNEST_OLLAMA_MODEL` | 使用するLLMモデル | `qwen2.5` |
+| `SPEAKNEST_STT_BASE_URL` | STT サービスのアドレス | `http://localhost:8080` |
+| `SPEAKNEST_STT_MODEL` | STTモデル | `base.en` |
+| `SPEAKNEST_UPLOAD_DIR` | 学習データ保存先 | `./data/recordings` |
+| `SPEAKNEST_CORS_ORIGINS` | CORS 許可オリジン | `http://localhost:3000,http://frontend:3000` |
+| `SPEAKNEST_DEBUG` | デバッグモード | `false` |
 
 ## Backend 検証: コンプラントチェック
 
 ```bash
 # サーバー起動後、以下の curl で健康チェックを確認
-curl http://localhost:8000/health
+curl http://localhost:8000/api/health
 ```
 
 正常応答:

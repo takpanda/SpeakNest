@@ -14,9 +14,10 @@ async def health():
     """Health check endpoint returning STT and Ollama status."""
     o_ready = "ok" if ollama_available() else "not_available"
     s_ready = "ok" if stt_available() else "not_available"
+    overall_status = "ok" if o_ready == "ok" and s_ready == "ok" else "degraded"
 
     return HealthResponse(
-        status="ok",
+        status=overall_status,
         ollama=o_ready,
         stt=s_ready,
         upload_dir=str(settings.upload_dir),

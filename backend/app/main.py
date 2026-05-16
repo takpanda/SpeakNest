@@ -41,3 +41,9 @@ async def root():
         "version": "0.1.0",
         "docs": "/docs",
     }
+
+
+@app.get("/health")
+async def health_alias():
+    """Legacy alias for the health check endpoint."""
+    return await health_router.health()
