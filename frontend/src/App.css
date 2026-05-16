@@ -1,0 +1,68 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.status {
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+}
+
+.status .connected {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.status .disconnected {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.instructions {
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  white-space: pre-line;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-primary {
+  padding: 0.75rem 2rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.nav-back {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
