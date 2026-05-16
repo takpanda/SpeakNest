@@ -12,6 +12,13 @@ services:
     networks:
       - speaknest
 
+  whisper:
+    build: ./services/whisper
+    ports:
+      - "8001:8000"
+    networks:
+      - speaknest
+
   backend:
     build: ./backend
     ports:
@@ -19,33 +26,25 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_BASE_URL=http://192.168.1.103:11434
       - VITE_API_BASE_URL=http://frontend:3000
+      - STT_BASE_URL=http://whisper:8000
     volumes:
       - data:/data
       - recordings:/recordings
     depends_on:
-      ollama:
-        condition: service_started
+      whisper:
+        condition: service_healthy
     networks:
       - speaknest
 
-  ollama:
-    image: ollama/ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/ollama/data
-    networks:
-      - speaknest
-
-# whisper:
-#   build: ./services/whisper
+# Ollama is running on remote server 192.168.1.103
+# ollama:
+#   image: ollama/ollama
 #   ports:
-#     - "8001:8000"
+#     - "11434:11434"
 #   volumes:
-#     - data:/data
-#     - recordings:/recordings
+#     - ollama-data:/ollama/data
 #   networks:
 #     - speaknest
 
