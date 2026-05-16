@@ -1,0 +1,70 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://backend:8000
+      - OLLAMA_BASE_URL=http://backend:11434
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - speaknest
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - VITE_API_BASE_URL=http://frontend:3000
+    volumes:
+      - data:/data
+      - recordings:/recordings
+    depends_on:
+      ollama:
+        condition: service_started
+    networks:
+      - speaknest
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/ollama/data
+    networks:
+      - speaknest
+
+# whisper:
+#   build: ./services/whisper
+#   ports:
+#     - "8001:8000"
+#   volumes:
+#     - data:/data
+#     - recordings:/recordings
+#   networks:
+#     - speaknest
+
+# piper:
+#   build: ./services/piper
+#   ports:
+#     - "5000:5000"
+#   networks:
+#     - speaknest
+
+# --- Without docker ---
+# Backend: cd backend && uvicorn app.main:app --reload --port 8000
+# Frontend: cd frontend && npm run dev
+
+networks:
+  speaknest:
+    driver: bridge
+
+volumes:
+  data:
+  recordings:
+  ollama-data:
