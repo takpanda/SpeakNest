@@ -1,0 +1,5 @@
+[project]
+name = "speaknest-pronunciation"
+version = "0.1.0"
+description = "Simple pronunciation feedback for MVP"
+requires-python = ">=3.10"
