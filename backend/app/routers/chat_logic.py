@@ -6,9 +6,7 @@ from app.config import settings
 from app.services.ollama_service import generate_conversation
 from app.services.stt_service import transcribe_audio
 from app.schemas import ChatRequest, ConversationResponse
-from app.config import UPLOAD_DIR, ensure_dirs, ollama_available, stt_available
-
-ensure_dirs()
+from app.config import ollama_available
 
 
 CONVERSATION_PROMPT = Path(__file__).parent.parent / "prompts" / "conversation.md"
@@ -53,13 +51,15 @@ async def process_conversation(req: ChatRequest, audio_path: str | None = None) 
 
     # 3. Generate conversation reply
     try:
-        conv_prompt = conversation_template.format(
-            level=req.level,
-            scenario=req.scenario,
-            user_utterance=transcript,
-            conversation_prompt=conversation_template if conversation_template else "",
-            feedback_prompt=feedback_template if feedback_template else "",
-        ) if conversation_template else None
+        conv_prompt = (
+            conversation_template.format(
+                level=req.level,
+                scenario=req.scenario,
+                user_utterance=transcript,
+            )
+            if conversation_template
+            else None
+        )
 
         response = await generate_conversation(conv_prompt)
     except Exception as e:

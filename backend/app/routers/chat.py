@@ -7,7 +7,7 @@ from app.routers.chat_logic import (
     ServiceUnavailableError,
     process_conversation,
 )
-from app.schemas import ChatRequest
+from app.schemas import ChatRequest, ConversationResponse
 from uuid import uuid4
 
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api", tags=["chat"])
 
 @router.post(
     "/chat",
-    response_model=None,
+    response_model=ConversationResponse,
     summary="Process voice conversation",
     responses={
         200: {"description": "Conversation response with reply and feedback"},
@@ -40,7 +40,7 @@ async def chat(request: ChatRequest):
 
 @router.post(
     "/conversation",
-    response_model=None,
+    response_model=ConversationResponse,
     summary="Process uploaded audio conversation",
     responses={
         200: {"description": "Conversation response with reply and feedback"},
