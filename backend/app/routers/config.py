@@ -6,13 +6,13 @@ from fastapi import APIRouter
 router = APIRouter()
 
 EXPECTED_VARS = [
-    "OLLAMA_BASE_URL",
-    "WHISPER_BASE_URL",
-    "TTS_BASE_URL",
-    "DATA_DIR",
-    "RECORDINGS_DIR",
-    "DATABASE_URL",
-    "CORS_ORIGINS",
+    "SPEAKNEST_OLLAMA_BASE_URL",
+    "SPEAKNEST_STT_BASE_URL",
+    "SPEAKNEST_UPLOAD_DIR",
+    "SPEAKNEST_ALLOWED_AUDIO_MIME_TYPES",
+    "SPEAKNEST_MAX_UPLOAD_SIZE_MB",
+    "SPEAKNEST_DEFAULT_SCENARIO",
+    "SPEAKNEST_CORS_ORIGINS",
 ]
 
 DEFAULTS = {
@@ -26,13 +26,13 @@ DEFAULTS = {
 }
 # env var -> settings attr mapping
 ENV_TO_ATTR = {
-    "OLLAMA_BASE_URL": "ollama_base_url",
-    "WHISPER_BASE_URL": "whisper_base_url",
-    "TTS_BASE_URL": "tts_base_url",
-    "DATA_DIR": "data_dir",
-    "RECORDINGS_DIR": "recordings_dir",
-    "DATABASE_URL": "database_url",
-    "CORS_ORIGINS": "cors_origins",
+    "SPEAKNEST_OLLAMA_BASE_URL": "ollama_base_url",
+    "SPEAKNEST_STT_BASE_URL": "stt_base_url",
+    "SPEAKNEST_UPLOAD_DIR": "upload_dir",
+    "SPEAKNEST_ALLOWED_AUDIO_MIME_TYPES": "allowed_audio_mime_types",
+    "SPEAKNEST_MAX_UPLOAD_SIZE_MB": "max_upload_size_mb",
+    "SPEAKNEST_DEFAULT_SCENARIO": "default_scenario",
+    "SPEAKNEST_CORS_ORIGINS": "cors_origins",
 }
 
 

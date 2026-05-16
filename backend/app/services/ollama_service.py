@@ -33,8 +33,13 @@ async def generate_conversation(prompt_text: str) -> dict:
     body = resp.json()
     generated_text = body.get("response", "")
 
-    # Parse JSON from Ollama response
-    reply = _parse_ollama_output(generated_text)
+    # Support both Ollama's normal text response and direct JSON dict payloads.
+    if isinstance(generated_text, dict):
+        reply = generated_text
+    elif all(k in body for k in ("reply_en", "reply_ja", "feedback_ja", "next_practice")):
+        reply = body
+    else:
+        reply = _parse_ollama_output(generated_text)
 
     # Fallback: empty strings if parsing fails
     return {
