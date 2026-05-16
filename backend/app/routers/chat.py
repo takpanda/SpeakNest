@@ -72,8 +72,6 @@ async def conversation(
     with open(filepath, "wb") as f:
         f.write(content)
 
-    request = ChatRequest(level=level, scenario=scene)
-
     try:
         result = await process_conversation(request, audio_path=str(filepath))
         return result
@@ -83,3 +81,5 @@ async def conversation(
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal error: {e}")
+    finally:
+        filepath.unlink(missing_ok=True)

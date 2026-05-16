@@ -14,7 +14,7 @@ async def transcribe_audio(file_path: str) -> str:
     Raises _SttError if STT service is not responding.
     """
     base = app_settings.stt_base_url.rstrip("/")
-    url = f"{base}/api/transcribe"
+    url = f"{base}/transcribe"
 
     mime_type, _ = mimetypes.guess_type(file_path)
     if not mime_type:

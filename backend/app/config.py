@@ -17,12 +17,12 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Ollama settings
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2"
+    ollama_base_url: str = "http://192.168.1.103:11434"
+    ollama_model: str = "gemma4:e4b"
 
     # STT settings (whisper.cpp)
-    stt_base_url: str = "http://localhost:8080"
-    stt_model: str = "base.en"
+    stt_base_url: str = "http://whisper:8000"
+    stt_model: str = "medium"
 
     # Upload settings
     upload_dir: str = "data/recordings"
