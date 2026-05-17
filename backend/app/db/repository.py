@@ -1,212 +1,180 @@
-"""CRUD repository layer for SpeakNest.
-
-All public methods accept and return plain dicts (no SQLAlchemy model instances
-are exposed outside this module).  The repository uses the global ``SessionLocal``
-from ``app.db.database`` directly so callers do not need a DB dependency.
-"""
-
 from __future__ import annotations
 
+import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
-from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-from app.db.database import SessionLocal
 from app.db.models import Session as SessionModel
-from app.db.models import Utterance as UtteranceModel
-from app.db.models import WeakPoint as WeakPointModel
+from app.db.models import Utterance, WeakPoint
 
 
-def _to_session(row: SessionModel) -> Dict:
-    return row.as_dict()
+# ===== sessions CRUD =====
 
 
-def _to_utterance(row: UtteranceModel) -> Dict:
-    return row.as_dict()
+def create_session(
+    db: Session,
+    *,
+    mode: str,
+    scenario: Optional[str] = None,
+    level: Optional[str] = None,
+    started_at: Optional[datetime] = None,
+) -> SessionModel:
+    now = datetime.now(timezone.utc)
+    db_session = SessionModel(
+        id=str(uuid.uuid4()),
+        mode=mode,
+        scenario=scenario,
+        level=level,
+        started_at=started_at or now,
+        ended_at=None,
+    )
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+    return db_session
 
 
-def _to_weak_point(row: WeakPointModel) -> Dict:
-    return row.as_dict()
-
-
-# --- Sessions ---
-
-
-def create_session(mode: str = "conversation", **kwargs) -> Dict:
-    db = SessionLocal()
-    try:
-        session = SessionModel(mode=mode, **kwargs)
-        db.add(session)
-        db.commit()
-        db.refresh(session)
-        return _to_session(session)
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
-
-
-def get_session(session_id: str) -> Optional[Dict]:
-    db = SessionLocal()
-    try:
-        row = db.query(SessionModel).filter(SessionModel.id == session_id).first()
-        return _to_session(row) if row else None
-    finally:
-        db.close()
+def get_session(db: Session, session_id: str) -> Optional[SessionModel]:
+    return db.query(SessionModel).filter(SessionModel.id == session_id).first()
 
 
 def list_sessions(
+    db: Session,
+    *,
     mode: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-) -> Dict:
-    """Return (items, total_count) ordered by started_at DESC."""
-    db = SessionLocal()
-    try:
-        q = db.query(SessionModel)
-        if mode:
-            q = q.filter(SessionModel.mode == mode)
-        total = q.count()
-        items = (
-            q.order_by(SessionModel.started_at.desc())
-            .offset(offset)
-            .limit(limit)
-            .all()
-        )
-        return {"items": [_to_session(r) for r in items], "total": total}
-    finally:
-        db.close()
+) -> list[SessionModel]:
+    query = db.query(SessionModel)
+    if mode:
+        query = query.filter(SessionModel.mode == mode)
+    return query.order_by(SessionModel.started_at.desc()).offset(offset).limit(limit).all()
 
 
-# --- Utterances ---
-
-
-def create_utterance(session_id: str, **kwargs) -> Dict:
-    db = SessionLocal()
-    try:
-        utterance = UtteranceModel(session_id=session_id, **kwargs)
-        db.add(utterance)
+def end_session(
+    db: Session, session_id: str, ended_at: Optional[datetime] = None
+) -> Optional[SessionModel]:
+    db_session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if db_session:
+        db_session.ended_at = ended_at or datetime.now(timezone.utc)
         db.commit()
-        db.refresh(utterance)
-        return _to_utterance(utterance)
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
+        db.refresh(db_session)
+    return db_session
 
 
-def get_utterance(utterance_id: str) -> Optional[Dict]:
-    db = SessionLocal()
-    try:
-        row = db.query(UtteranceModel).filter(UtteranceModel.id == utterance_id).first()
-        return _to_utterance(row) if row else None
-    finally:
-        db.close()
+# ===== utterances CRUD =====
 
 
-def list_utterances(session_id: str, limit: int = 200) -> List[Dict]:
-    db = SessionLocal()
-    try:
-        rows = (
-            db.query(UtteranceModel)
-            .filter(UtteranceModel.session_id == session_id)
-            .order_by(UtteranceModel.created_at.asc())
-            .limit(limit)
-            .all()
-        )
-        return [_to_utterance(r) for r in rows]
-    finally:
-        db.close()
+def create_utterance(
+    db: Session,
+    *,
+    session_id: str,
+    role: str,
+    audio_path: Optional[str] = None,
+    transcript: Optional[str] = None,
+    target_text: Optional[str] = None,
+    wer: Optional[float] = None,
+    score: Optional[int] = None,
+    feedback_json: Optional[str] = None,
+    created_at: Optional[datetime] = None,
+) -> Utterance:
+    now = datetime.now(timezone.utc)
+    utt = Utterance(
+        id=str(uuid.uuid4()),
+        session_id=session_id,
+        role=role,
+        audio_path=audio_path,
+        transcript=transcript,
+        target_text=target_text,
+        wer=wer,
+        score=score,
+        feedback_json=feedback_json,
+        created_at=created_at or now,
+    )
+    db.add(utt)
+    db.commit()
+    db.refresh(utt)
+    return utt
 
 
-# --- Weak Points ---
+def get_utterance(db: Session, utterance_id: str) -> Optional[Utterance]:
+    return db.query(Utterance).filter(Utterance.id == utterance_id).first()
 
 
-def upsert_weak_point(phrase: str, session_id: Optional[str] = None, **kwargs) -> Dict:
-    """Update count if the phrase already exists, otherwise insert."""
-    last_seen = kwargs.pop("last_seen_at", datetime.now(timezone.utc))
-    issue_type = kwargs.pop("issue_type", None)
-    db = SessionLocal()
-    try:
-        point = (
-            db.query(WeakPointModel)
-            .filter(WeakPointModel.phrase == phrase)
-            .first()
-        )
-        if point:
-            point.count += 1
-            point.last_seen_at = last_seen
-        else:
-            # Build extra fields without double-passing known params
-            extra: Dict[str, Any] = {
-                "phrase": phrase,
-                "session_id": session_id,
-                "count": 1,
-                "last_seen_at": last_seen,
-            }
-            if issue_type:
-                extra["issue_type"] = issue_type
-            extra.update(kwargs)
-            point = WeakPointModel(**extra)
-            db.add(point)
+def list_utterances(
+    db: Session,
+    session_id: str,
+    *,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[Utterance]:
+    return (
+        db.query(Utterance)
+        .filter(Utterance.session_id == session_id)
+        .order_by(Utterance.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+def delete_utterance(db: Session, utterance_id: str) -> bool:
+    utt = db.query(Utterance).filter(Utterance.id == utterance_id).first()
+    if utt:
+        db.delete(utt)
         db.commit()
-        db.refresh(point)
-        return _to_weak_point(point)
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
+        return True
+    return False
 
 
-def list_weak_points(limit: int = 50) -> List[Dict]:
-    db = SessionLocal()
-    try:
-        rows = (
-            db.query(WeakPointModel)
-            .order_by(WeakPointModel.count.desc(), WeakPointModel.last_seen_at.desc())
-            .limit(limit)
-            .all()
-        )
-        return [_to_weak_point(r) for r in rows]
-    finally:
-        db.close()
+# ===== weak_points CRUD =====
 
 
-def pick_next_review() -> Optional[Dict]:
-    """Pick one weak point to review (lowest count first, then newest)."""
-    db = SessionLocal()
-    try:
-        row = (
-            db.query(WeakPointModel)
-            .order_by(WeakPointModel.count.asc(), WeakPointModel.last_seen_at.desc())
-            .first()
-        )
-        return _to_weak_point(row) if row else None
-    finally:
-        db.close()
-
-
-# --- Session helpers ---
-
-
-def complete_session(session_id: str) -> None:
-    """Mark a session's ``ended_at`` timestamp (called when the session ends)."""
-    db = SessionLocal()
-    try:
-        db.query(SessionModel).filter(SessionModel.id == session_id).update(
-            {SessionModel.ended_at: datetime.now(timezone.utc)},
-        )
+def upsert_weak_point(
+    db: Session,
+    *,
+    phrase: str,
+    issue_type: str,
+) -> WeakPoint:
+    existing = (
+        db.query(WeakPoint)
+        .filter(WeakPoint.phrase == phrase)
+        .first()
+    )
+    if existing:
+        existing.count += 1
+        existing.last_seen_at = datetime.now(timezone.utc)
         db.commit()
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
+        db.refresh(existing)
+        return existing
+
+    wp = WeakPoint(
+        id=str(uuid.uuid4()),
+        phrase=phrase,
+        issue_type=issue_type,
+        count=1,
+        last_seen_at=datetime.now(timezone.utc),
+    )
+    db.add(wp)
+    db.commit()
+    db.refresh(wp)
+    return wp
 
 
-# Singleton for import convenience
-db_repo = type("DbRepo", (), {k: v for k, v in locals().items() if callable(v) and not k.startswith("_")})()
+def get_weak_points(
+    db: Session,
+    *,
+    issue_type: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[WeakPoint]:
+    query = db.query(WeakPoint)
+    if issue_type:
+        query = query.filter(WeakPoint.issue_type == issue_type)
+    return query.order_by(WeakPoint.count.desc()).offset(offset).limit(limit).all()
+
+
+def get_weak_point(db: Session, wp_id: str) -> Optional[WeakPoint]:
+    return db.query(WeakPoint).filter(WeakPoint.id == wp_id).first()

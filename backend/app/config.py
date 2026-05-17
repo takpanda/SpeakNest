@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     stt_base_url: str = "http://whisper:8000"
     stt_model: str = "medium"
 
+    # TTS settings (piper)
+    tts_base_url: str = "http://piper:5000"
+
     # Upload settings
     upload_dir: str = "data/recordings"
     allowed_audio_mime_types: str = "audio/webm,audio/wav,audio/mp4,audio/mpeg,audio/x-wav"
@@ -36,12 +39,13 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "*"
 
-    # TTS
-    tts_base_url: str = ""
+    # DB
+    db_path: str = "/data/speaknest.db"
 
 
 settings = Settings()
 UPLOAD_DIR = Path(settings.upload_dir)
+DB_FILE_PATH = Path(settings.db_path)
 
 
 def ensure_dirs() -> None:
@@ -73,21 +77,12 @@ def stt_available() -> bool:
 
 
 def tts_available() -> bool:
-    """Check if TTS service is reachable and configured."""
-    if not settings.tts_base_url:
-        return False
+    """Check if TTS (Piper) service is reachable."""
     import httpx
 
     base = settings.tts_base_url.rstrip("/")
     try:
-        resp = httpx.get(f"{base}/health", timeout=3.0)
+        resp = httpx.get(f"{base}/api/health", timeout=3.0)
         return resp.status_code == 200
     except httpx.RequestError:
         return False
-
-
-def get_tts_base_url() -> str | None:
-    """Return the configured TTS base URL or None if not configured."""
-    if settings.tts_base_url:
-        return settings.tts_base_url
-    return None

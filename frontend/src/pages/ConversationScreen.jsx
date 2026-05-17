@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { getScenes, getLevels, submitAudio, getMockResult } from '../services/conversationApi.js'
 import './ConversationScreen.css'
 
+const TTS_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
 const STATUS = {
   IDLE: 'idle',
   RECORDING: 'recording',
@@ -20,6 +22,10 @@ function ConversationScreen({ initialScene, initialLevel }) {
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
   const [isSupported, setIsSupported] = useState(true)
+  const [isTtsReady, setIsTtsReady] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const audioRef = useRef(null)
 
   const mediaRecorderRef = useRef(null)
   const audioUrlRef = useRef(null)
@@ -106,9 +112,45 @@ function ConversationScreen({ initialScene, initialLevel }) {
 
   const resetState = useCallback(() => {
     setStatus(STATUS.IDLE)
-    setResult(null)
     setError('')
+    setResult(null)
   }, [])
+
+  const playAiReply = useCallback(async () => {
+    if (!result?.reply_en || isPlaying) return
+    setIsPlaying(true)
+    setError('')
+    try {
+      const resp = await fetch(`${TTS_BASE}/tts/synthesize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: result.reply_en }),
+      })
+      if (!resp.ok) {
+        setIsTtsReady(false)
+        throw new Error(`TTS error: ${resp.status}`)
+      }
+      const blob = await resp.blob()
+      const url = URL.createObjectURL(blob)
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      audioRef.current = new Audio(url)
+      audioRef.current.onended = () => {
+        setIsPlaying(false)
+        URL.revokeObjectURL(url)
+      }
+      audioRef.current.onerror = () => {
+        setIsTtsReady(false)
+        setIsPlaying(false)
+      }
+      await audioRef.current.play()
+    } catch {
+      setIsTtsReady(false)
+      setIsPlaying(false)
+    }
+  }, [result, isPlaying])
 
   const retryConversation = useCallback(() => {
     setStatus(STATUS.IDLE)
@@ -260,6 +302,16 @@ function ConversationScreen({ initialScene, initialLevel }) {
               <h3 className="result-label">AI Reply</h3>
               <p className="result-text-en">{result.reply_en}</p>
               <p className="result-text-ja">{result.reply_ja}</p>
+              <div className="reply-actions">
+                <button
+                  className="btn-play"
+                  disabled={!isTtsReady || isPlaying}
+                  onClick={playAiReply}
+                >
+                  {isPlaying ? '再生中...' : isTtsReady ? '▶ 再生' : '音声利用不可'}
+                </button>
+              </div>
+              <audio ref={audioRef} hidden />
             </div>
             <div className="result-section">
               <h3 className="result-label">フィードバック</h3>

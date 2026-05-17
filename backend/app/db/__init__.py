@@ -1,16 +1,44 @@
-"""SpeakNest SQLite database models and engine.
+from __future__ import annotations
 
-This package exports:
-- ``Base`` – SQLAlchemy declarative base (import from ``models``)
-- ``engine`` – sync SQLAlchemy engine (import from ``database``)
-- ``SessionLocal`` – session factory (import from ``database``)
-- ``Session, Utterance, WeakPoint`` – ORM model classes
-- ``db_repo`` – CRUD repository instance
-"""
+from app.db.database import (
+    engine as db_engine,
+    SessionLocal,
+    get_db,
+    create_db_and_tables,
+    DATABASE_URL as db_url,
+)
+from app.db.models import Base, Session, Utterance, WeakPoint
+from app.db.repository import (
+    create_session,
+    get_session,
+    end_session,
+    create_utterance,
+    get_utterance,
+    list_utterances,
+    delete_utterance,
+    upsert_weak_point,
+    get_weak_points,
+    get_weak_point,
+)
 
-from app.db.database import engine, SessionLocal, init_db  # noqa: F401
-from app.db.models import Base, Session, Utterance, WeakPoint  # noqa: F401
-from app.db.repository import db_repo  # noqa: F401
-
-# Ensure Base is importable for ``init_db`` callers that rely on ``Base.metadata.create_all``.
-__all__ = ["Base", "Session", "Utterance", "WeakPoint", "engine", "SessionLocal", "init_db", "db_repo"]
+__all__ = [
+    "create_db_and_tables",
+    "db_url",
+    "db_engine",
+    "SessionLocal",
+    "get_db",
+    "create_session",
+    "get_session",
+    "end_session",
+    "create_utterance",
+    "get_utterance",
+    "list_utterances",
+    "delete_utterance",
+    "upsert_weak_point",
+    "get_weak_points",
+    "get_weak_point",
+    "Base",
+    "Session",
+    "Utterance",
+    "WeakPoint",
+]
