@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SpeakNest — アプリ仕様書</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --clr-bg:       #0f1117;
+    --clr-surface:  #1a1d27;
+    --clr-card:     #22263a;
+    --clr-border:   #2e3350;
+    --clr-primary:  #6c8fff;
+    --clr-accent:   #4ecca3;
+    --clr-warn:     #f5a623;
+    --clr-danger:   #e05c5c;
+    --clr-text:     #d4d8f0;
+    --clr-muted:    #7880a0;
+    --clr-code-bg:  #141720;
+    --radius:       8px;
+    --font-body:    "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans", sans-serif;
+    --font-mono:    "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    --sidebar-w:    260px;
+    --header-h:     56px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  /* ===== LAYOUT ===== */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--clr-surface);
+    border-right: 1px solid var(--clr-border);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--clr-border);
+  }
+  .sidebar-header .logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--clr-primary);
+    letter-spacing: .5px;
+  }
+  .sidebar-header .version {
+    font-size: 11px;
+    color: var(--clr-muted);
+    margin-top: 2px;
+  }
+  .sidebar nav { padding: 12px 0; flex: 1; }
+  .nav-group { margin-bottom: 4px; }
+  .nav-group-label {
+    padding: 6px 20px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--clr-muted);
+  }
+  .sidebar nav a {
+    display: block;
+    padding: 7px 20px;
+    color: var(--clr-text);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: background .15s, border-color .15s, color .15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sidebar nav a:hover {
+    background: var(--clr-card);
+    color: var(--clr-primary);
+    border-left-color: var(--clr-primary);
+  }
+
+  /* ===== MAIN ===== */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, #1e244a 0%, #12182e 100%);
+    border-bottom: 1px solid var(--clr-border);
+    padding: 40px 48px 36px;
+  }
+  .page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .page-header .subtitle {
+    color: var(--clr-muted);
+    font-size: 13px;
+  }
+  .page-header .meta-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-blue   { background: #1e3260; color: var(--clr-primary); border: 1px solid #2a4490; }
+  .badge-green  { background: #1a3b30; color: var(--clr-accent);  border: 1px solid #2a5545; }
+  .badge-orange { background: #3b2a10; color: var(--clr-warn);    border: 1px solid #5a4015; }
+  .badge-red    { background: #3b1515; color: var(--clr-danger);  border: 1px solid #602020; }
+
+  content-area { display: block; padding: 40px 48px 80px; max-width: 1100px; }
+
+  /* ===== SECTIONS ===== */
+  section { margin-bottom: 56px; }
+  section:target { scroll-margin-top: 20px; }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--clr-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .icon { font-size: 20px; }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--clr-primary);
+    margin: 24px 0 12px;
+  }
+  h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--clr-accent);
+    margin: 16px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  p { margin-bottom: 12px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--clr-card);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .card-sm {
+    background: var(--clr-card);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .card-sm .label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--clr-muted);
+    margin-bottom: 4px;
+  }
+  .card-sm .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--clr-primary);
+  }
+  .card-sm .desc {
+    font-size: 12px;
+    color: var(--clr-muted);
+    margin-top: 2px;
+  }
+
+  /* ===== TABLES ===== */
+  .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: #1e2338;
+    color: var(--clr-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--clr-border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--clr-border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #1e2133; }
+
+  .method {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    min-width: 46px;
+    text-align: center;
+  }
+  .method-get  { background: #0f3020; color: #3ecf8e; border: 1px solid #1a5035; }
+  .method-post { background: #102040; color: #6c9fff; border: 1px solid #1a3060; }
+
+  /* ===== CODE ===== */
+  pre, code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+  }
+  code {
+    background: var(--clr-code-bg);
+    border: 1px solid var(--clr-border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #b0c8ff;
+  }
+  pre {
+    background: var(--clr-code-bg);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    line-height: 1.6;
+    color: #c8d4f0;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* ===== NOTES ===== */
+  .note {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    font-size: 13px;
+    border-left: 3px solid;
+  }
+  .note-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .note-warn   { background: #2e2010; border-color: var(--clr-warn);   color: #e8c080; }
+  .note-info   { background: #101e35; border-color: var(--clr-primary); color: #a0b8f0; }
+  .note-ok     { background: #0f2820; border-color: var(--clr-accent);  color: #80d8b8; }
+  .note-danger { background: #2a1010; border-color: var(--clr-danger);  color: #e8a0a0; }
+
+  /* ===== STATUS PILL ===== */
+  .pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .pill-done    { background: #1a3b2a; color: var(--clr-accent); }
+  .pill-plan    { background: #2e2010; color: var(--clr-warn); }
+  .pill-no      { background: #1e2030; color: var(--clr-muted); }
+  .pill-guess   { background: #2a2030; color: #c080ff; border: 1px solid #4a3060; }
+
+  /* ===== FILE TREE ===== */
+  .file-tree {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.0;
+    background: var(--clr-code-bg);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .file-tree .dir  { color: #6c9fff; font-weight: 600; }
+  .file-tree .file { color: #c8d4f0; }
+  .file-tree .note { color: #7880a0; font-style: italic; padding: 0; border: none; background: none; display: inline; }
+
+  /* ===== FLOW STEPS ===== */
+  .flow-steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 16px; }
+  .flow-step {
+    display: flex;
+    gap: 16px;
+    position: relative;
+  }
+  .flow-step::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 36px;
+    bottom: -4px;
+    width: 2px;
+    background: var(--clr-border);
+  }
+  .flow-step:last-child::before { display: none; }
+  .step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--clr-primary);
+    color: #0f1117;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 4px;
+  }
+  .step-body { padding: 6px 0 20px; }
+  .step-body strong { display: block; font-size: 14px; color: #fff; margin-bottom: 3px; }
+  .step-body p { font-size: 13px; color: var(--clr-muted); margin: 0; }
+
+  /* ===== SVG DIAGRAMS ===== */
+  .diagram-wrap {
+    background: var(--clr-code-bg);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { display: block; }
+
+  /* ===== GRID HELPERS ===== */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--clr-muted); }
+
+  /* ===== TOC top ===== */
+  .toc-bar {
+    background: var(--clr-surface);
+    border-bottom: 1px solid var(--clr-border);
+    padding: 10px 48px;
+    font-size: 12px;
+    color: var(--clr-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .toc-bar a { color: var(--clr-primary); text-decoration: none; }
+  .toc-bar a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ======== SIDEBAR ======== -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">🐦 SpeakNest</div>
+    <div class="version">仕様書 v1.0 — 2026-05-17</div>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-group-label">概要</div>
+      <a href="#overview">アプリの目的</a>
+      <a href="#stack">技術スタック</a>
+      <a href="#architecture">システム構成</a>
+      <a href="#directory">ディレクトリ構成</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">機能</div>
+      <a href="#screens">画面・ルート</a>
+      <a href="#api">API 一覧</a>
+      <a href="#models">データモデル</a>
+      <a href="#flows">処理フロー</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">インフラ</div>
+      <a href="#env">環境変数</a>
+      <a href="#docker">Docker 構成</a>
+      <a href="#auth">認証・認可</a>
+      <a href="#external">外部連携</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">開発</div>
+      <a href="#startup">起動方法</a>
+      <a href="#tests">テスト方法</a>
+      <a href="#phases">開発フェーズ</a>
+      <a href="#errors">エラー処理</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">付録</div>
+      <a href="#unknown">未確認・確認事項</a>
+      <a href="#nextfiles">次に読むべきファイル</a>
+    </div>
+  </nav>
+</aside>
+
+<!-- ======== MAIN ======== -->
+<div class="main">
+
+<!-- ページヘッダー -->
+<div class="page-header">
+  <h1>🐦 SpeakNest — アプリ仕様書</h1>
+  <p class="subtitle">実装コードから読み取った仕様をまとめた技術仕様書。新規参加の開発者向け。</p>
+  <div class="meta-badges">
+    <span class="badge badge-blue">作成日: 2026-05-17</span>
+    <span class="badge badge-green">ソース: ソースコード解析</span>
+    <span class="badge badge-orange">Phase 1 (MVP)</span>
+    <span class="badge badge-red">⚠ 推測箇所あり — 本文参照</span>
+  </div>
+</div>
+
+<content-area>
+
+<!-- ===================================================================== -->
+<!-- 1. アプリの目的 -->
+<!-- ===================================================================== -->
+<section id="overview">
+  <h2><span class="icon">🎯</span>アプリの目的</h2>
+
+  <div class="card">
+    <p>
+      <strong>SpeakNest</strong> は、日本人英語学習者向けのローカル動作英語学習アプリである。
+      インターネット接続を必要とせず、ローカル環境または LAN 内の自己ホスト型 AI サービスを利用して
+      以下の機能を提供する。
+    </p>
+    <ul style="margin: 12px 0 0 20px; line-height: 2;">
+      <li>🎤 <strong>音声会話練習</strong> — マイクで話すと AI が英語で返答し、日本語訳も表示</li>
+      <li>📝 <strong>フィードバック</strong> — 文法・発音に関する日本語フィードバックを自動生成</li>
+      <li>📊 <strong>発音評価</strong> — Word Error Rate (WER) ベースの発音スコアリング</li>
+      <li>🌐 <strong>シナリオ学習</strong> — カフェ注文、ホテルチェックイン等のシチュエーション別練習</li>
+    </ul>
+  </div>
+
+  <div class="card-grid">
+    <div class="card-sm">
+      <div class="label">想定ユーザー</div>
+      <div class="value">日本人英語学習者</div>
+      <div class="desc">CEFR A1〜B2 レベル対応</div>
+    </div>
+    <div class="card-sm">
+      <div class="label">動作環境</div>
+      <div class="value">完全ローカル</div>
+      <div class="desc">オフライン可・インターネット不要</div>
+    </div>
+    <div class="card-sm">
+      <div class="label">AI 基盤</div>
+      <div class="value">Ollama + Whisper</div>
+      <div class="desc">自己ホスト型 LLM + STT</div>
+    </div>
+    <div class="card-sm">
+      <div class="label">現フェーズ</div>
+      <div class="value">Phase 1 MVP</div>
+      <div class="desc">音声会話・発音評価が中心</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 2. 技術スタック -->
+<!-- ===================================================================== -->
+<section id="stack">
+  <h2><span class="icon">🧱</span>技術スタック</h2>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>フロントエンド</h3>
+      <table>
+        <thead><tr><th>技術</th><th>バージョン</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>React</code></td><td>18.2.0</td><td>UI コンポーネント</td></tr>
+          <tr><td><code>Vite</code></td><td>—</td><td>ビルドツール・開発サーバー</td></tr>
+          <tr><td>JSX / JavaScript</td><td>—</td><td>実装言語</td></tr>
+          <tr><td>CSS Modules</td><td>—</td><td>スタイリング（モジュールなし、.css ファイル直書き）</td></tr>
+          <tr><td><code>MediaRecorder API</code></td><td>ブラウザ標準</td><td>マイク録音</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>バックエンド</h3>
+      <table>
+        <thead><tr><th>技術</th><th>バージョン</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>Python</code></td><td>3.12</td><td>実装言語</td></tr>
+          <tr><td><code>FastAPI</code></td><td>—</td><td>REST API フレームワーク</td></tr>
+          <tr><td><code>uvicorn</code></td><td>—</td><td>ASGI サーバー</td></tr>
+          <tr><td><code>Pydantic</code></td><td>v2系推測</td><td>スキーマ定義・バリデーション</td></tr>
+          <tr><td><code>httpx</code></td><td>—</td><td>非同期 HTTP クライアント</td></tr>
+          <tr><td><code>pytest</code></td><td>—</td><td>テストフレームワーク</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>AI / ML サービス</h3>
+      <table>
+        <thead><tr><th>技術</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>Ollama</code> + <code>gemma4:e4b</code></td><td>LLM（会話生成・フィードバック）</td></tr>
+          <tr><td><code>faster-whisper</code> medium</td><td>STT（音声→テキスト変換）</td></tr>
+          <tr><td>Piper TTS <span class="pill pill-plan">Phase 2 予定</span></td><td>TTS（テキスト→音声）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>インフラ</h3>
+      <table>
+        <thead><tr><th>技術</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>Docker + Docker Compose</td><td>コンテナ化・サービス管理</td></tr>
+          <tr><td>Bridge Network (<code>speaknest</code>)</td><td>コンテナ間通信</td></tr>
+          <tr><td>Named Volume (<code>data</code>, <code>recordings</code>)</td><td>音声ファイル永続化</td></tr>
+          <tr><td>SQLite <span class="pill pill-plan">Phase 3 予定</span></td><td>学習履歴 DB（未実装）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 3. システム構成 -->
+<!-- ===================================================================== -->
+<section id="architecture">
+  <h2><span class="icon">🏗</span>システム構成</h2>
+
+  <div class="diagram-wrap">
+    <!-- システム構成図 SVG -->
+    <svg width="780" height="380" viewBox="0 0 780 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#6c8fff" />
+        </marker>
+        <marker id="arrow-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#7880a0" />
+        </marker>
+        <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#f5a623" />
+        </marker>
+        <filter id="shadow">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity=".4"/>
+        </filter>
+      </defs>
+
+      <!-- ユーザー -->
+      <g transform="translate(20,140)">
+        <circle cx="40" cy="40" r="28" fill="#1a1d27" stroke="#2e3350" stroke-width="1.5" filter="url(#shadow)"/>
+        <text x="40" y="44" text-anchor="middle" font-size="22" fill="#d4d8f0">👤</text>
+        <text x="40" y="84" text-anchor="middle" font-size="11" fill="#7880a0">ユーザー</text>
+        <text x="40" y="96" text-anchor="middle" font-size="10" fill="#555c7a">ブラウザ</text>
+      </g>
+
+      <!-- 矢印: ユーザー → フロントエンド -->
+      <line x1="90" y1="180" x2="148" y2="180" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3"/>
+
+      <!-- フロントエンド -->
+      <rect x="152" y="120" width="160" height="120" rx="8" fill="#1a1d27" stroke="#2a4490" stroke-width="1.5" filter="url(#shadow)"/>
+      <rect x="152" y="120" width="160" height="30" rx="8" fill="#1e3260"/>
+      <rect x="152" y="142" width="160" height="8" rx="0" fill="#1e3260"/>
+      <text x="232" y="141" text-anchor="middle" font-size="12" font-weight="700" fill="#6c8fff">Frontend</text>
+      <text x="232" y="162" text-anchor="middle" font-size="11" fill="#7880a0">React + Vite</text>
+      <text x="232" y="177" text-anchor="middle" font-size="10" fill="#555c7a">port: 3000</text>
+      <text x="232" y="197" text-anchor="middle" font-size="10" fill="#7880a0">App.jsx</text>
+      <text x="232" y="211" text-anchor="middle" font-size="10" fill="#7880a0">ConversationScreen.jsx</text>
+      <text x="232" y="225" text-anchor="middle" font-size="10" fill="#555c7a">conversationApi.js</text>
+
+      <!-- 矢印: Frontend → Backend -->
+      <line x1="312" y1="180" x2="368" y2="180" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="340" y="170" text-anchor="middle" font-size="10" fill="#6c8fff">HTTP/REST</text>
+      <text x="340" y="195" text-anchor="middle" font-size="10" fill="#555c7a">CORS</text>
+
+      <!-- バックエンド -->
+      <rect x="372" y="80" width="180" height="200" rx="8" fill="#1a1d27" stroke="#2e3350" stroke-width="1.5" filter="url(#shadow)"/>
+      <rect x="372" y="80" width="180" height="30" rx="8" fill="#1e2338"/>
+      <rect x="372" y="102" width="180" height="8" fill="#1e2338"/>
+      <text x="462" y="101" text-anchor="middle" font-size="12" font-weight="700" fill="#d4d8f0">Backend</text>
+      <text x="462" y="124" text-anchor="middle" font-size="11" fill="#7880a0">FastAPI + uvicorn</text>
+      <text x="462" y="139" text-anchor="middle" font-size="10" fill="#555c7a">port: 8000</text>
+      <g transform="translate(392,150)">
+        <rect width="140" height="22" rx="4" fill="#22263a" stroke="#2e3350"/>
+        <text x="70" y="15" text-anchor="middle" font-size="10" fill="#9090b0">routers/ (chat, audio, ...)</text>
+      </g>
+      <g transform="translate(392,178)">
+        <rect width="140" height="22" rx="4" fill="#22263a" stroke="#2e3350"/>
+        <text x="70" y="15" text-anchor="middle" font-size="10" fill="#9090b0">services/ (ollama, stt)</text>
+      </g>
+      <g transform="translate(392,206)">
+        <rect width="140" height="22" rx="4" fill="#22263a" stroke="#2e3350"/>
+        <text x="70" y="15" text-anchor="middle" font-size="10" fill="#9090b0">pronunciation/ (WER eval)</text>
+      </g>
+      <g transform="translate(392,234)">
+        <rect width="140" height="22" rx="4" fill="#22263a" stroke="#2e3350"/>
+        <text x="70" y="15" text-anchor="middle" font-size="10" fill="#555c7a">db/ (未実装)</text>
+      </g>
+
+      <!-- 矢印: Backend → Whisper -->
+      <line x1="462" y1="280" x2="462" y2="330" stroke="#4ecca3" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Whisper -->
+      <rect x="372" y="334" width="180" height="34" rx="8" fill="#1a1d27" stroke="#2a5545" stroke-width="1.5"/>
+      <text x="462" y="355" text-anchor="middle" font-size="11" font-weight="700" fill="#4ecca3">Whisper STT</text>
+      <text x="462" y="368" text-anchor="middle" font-size="9" fill="#555c7a">faster-whisper · port 8001</text>
+
+      <!-- 矢印: Backend → Ollama (斜め右上) -->
+      <line x1="552" y1="160" x2="620" y2="130" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+      <text x="596" y="135" font-size="10" fill="#f5a623">LAN / remote</text>
+
+      <!-- Ollama -->
+      <rect x="620" y="80" width="148" height="100" rx="8" fill="#1a1d27" stroke="#5a4015" stroke-width="1.5" filter="url(#shadow)"/>
+      <rect x="620" y="80" width="148" height="30" rx="8" fill="#3b2a10"/>
+      <rect x="620" y="102" width="148" height="8" fill="#3b2a10"/>
+      <text x="694" y="101" text-anchor="middle" font-size="12" font-weight="700" fill="#f5a623">Ollama</text>
+      <text x="694" y="124" text-anchor="middle" font-size="11" fill="#7880a0">gemma4:e4b</text>
+      <text x="694" y="139" text-anchor="middle" font-size="10" fill="#555c7a">192.168.1.103:11434</text>
+      <text x="694" y="158" text-anchor="middle" font-size="10" fill="#7880a0">POST /api/generate</text>
+      <text x="694" y="171" text-anchor="middle" font-size="10" fill="#555c7a">timeout: 120s</text>
+
+      <!-- Docker Network ラベル -->
+      <rect x="148" y="50" width="420" height="16" rx="4" fill="none" stroke="#2e3350" stroke-width="1" stroke-dasharray="5,4"/>
+      <text x="358" y="62" text-anchor="middle" font-size="10" fill="#3c4570">Docker Network: speaknest (bridge)</text>
+
+      <!-- ポート説明 -->
+      <text x="30" y="295" font-size="10" fill="#555c7a">── HTTP/REST</text>
+      <text x="30" y="310" font-size="10" fill="#4ecca3">── STT API</text>
+      <text x="30" y="325" font-size="10" fill="#f5a623">── LLM API (LAN)</text>
+    </svg>
+  </div>
+
+  <div class="note note-warn">
+    <span class="note-icon">⚠️</span>
+    <div>Ollama は <code>docker-compose.yml</code> でコメントアウトされており、LAN 上の外部ホスト <code>192.168.1.103:11434</code> へ直接通信する構成になっている。本番・チーム開発では環境変数 <code>SPEAKNEST_OLLAMA_BASE_URL</code> を変更する必要がある。</div>
+  </div>
+
+  <h3>ネットワーク・ポート一覧</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>サービス</th><th>ホスト側ポート</th><th>コンテナ側ポート</th><th>Docker 名</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend</td><td>3000</td><td>3000</td><td><code>frontend</code></td><td>Vite 開発サーバー</td></tr>
+        <tr><td>Backend</td><td>8000</td><td>8000</td><td><code>backend</code></td><td>uvicorn / FastAPI</td></tr>
+        <tr><td>Whisper STT</td><td>8001</td><td>8000</td><td><code>whisper</code></td><td>ホスト側 8001 に注意</td></tr>
+        <tr><td>Ollama</td><td>—</td><td>—</td><td>コメントアウト</td><td>外部 LAN ホスト直参照</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 4. ディレクトリ構成 -->
+<!-- ===================================================================== -->
+<section id="directory">
+  <h2><span class="icon">📂</span>ディレクトリ構成</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>バックエンド (<code>backend/</code>)</h3>
+      <div class="file-tree">
+<span class="dir">backend/</span>
+├── <span class="dir">app/</span>
+│   ├── <span class="file">main.py</span>          <span class="note"># FastAPI アプリ生成, CORS, ルーター登録</span>
+│   ├── <span class="file">config.py</span>        <span class="note"># Settings クラス, ヘルスチェック, ディレクトリ作成</span>
+│   ├── <span class="file">schemas.py</span>       <span class="note"># Pydantic モデル全定義</span>
+│   ├── <span class="dir">routers/</span>
+│   │   ├── <span class="file">health.py</span>      <span class="note"># GET /api/health, GET /health</span>
+│   │   ├── <span class="file">chat.py</span>        <span class="note"># POST /api/chat, POST /api/conversation</span>
+│   │   ├── <span class="file">chat_logic.py</span>  <span class="note"># 会話処理コアロジック</span>
+│   │   ├── <span class="file">audio.py</span>       <span class="note"># POST /api/audio/upload, GET /api/audio/uploads/{id}</span>
+│   │   ├── <span class="file">config.py</span>      <span class="note"># GET /api/config</span>
+│   │   └── <span class="file">eval_router.py</span> <span class="note"># POST /pronunciation</span>
+│   ├── <span class="dir">services/</span>
+│   │   ├── <span class="file">ollama_service.py</span> <span class="note"># Ollama API クライアント</span>
+│   │   └── <span class="file">stt_service.py</span>    <span class="note"># Whisper STT クライアント</span>
+│   ├── <span class="dir">pronunciation/</span>
+│   │   └── <span class="file">eval.py</span>        <span class="note"># WER 計算, 単語差分抽出</span>
+│   ├── <span class="dir">prompts/</span>
+│   │   ├── <span class="file">conversation.md</span>  <span class="note"># LLM 会話プロンプトテンプレート</span>
+│   │   └── <span class="file">feedback.md</span>     <span class="note"># フィードバックプロンプト (未統合)</span>
+│   └── <span class="dir">db/</span>
+│       └── <span class="file">__init__.py</span>  <span class="note"># 空 (Phase 3 SQLite 予定)</span>
+├── <span class="dir">data/recordings/</span>       <span class="note"># 音声ファイル一時保存</span>
+├── <span class="dir">tests/</span>
+│   ├── <span class="file">conftest.py</span>          <span class="note"># テスト Fixture</span>
+│   ├── <span class="file">test_audio.py</span>
+│   ├── <span class="file">test_chat.py</span>
+│   ├── <span class="file">test_health.py</span>
+│   ├── <span class="file">test_pronunciation.py</span>
+│   └── <span class="file">test_config.py</span>
+├── <span class="file">requirements.txt</span>
+├── <span class="file">pyproject.toml</span>
+└── <span class="file">Dockerfile</span>
+      </div>
+    </div>
+    <div>
+      <h3>フロントエンド (<code>frontend/</code>)</h3>
+      <div class="file-tree">
+<span class="dir">frontend/</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="file">main.jsx</span>              <span class="note"># React エントリポイント</span>
+│   ├── <span class="file">App.jsx</span>               <span class="note"># ホーム画面, API 状態確認</span>
+│   ├── <span class="file">App.css</span>               <span class="note"># ホームページスタイル</span>
+│   ├── <span class="file">index.css</span>             <span class="note"># グローバルスタイル</span>
+│   ├── <span class="dir">pages/</span>
+│   │   ├── <span class="file">ConversationScreen.jsx</span> <span class="note"># 会話画面 (メイン機能)</span>
+│   │   └── <span class="file">ConversationScreen.css</span>
+│   └── <span class="dir">services/</span>
+│       └── <span class="file">conversationApi.js</span>    <span class="note"># API 呼び出し, モックデータ</span>
+├── <span class="file">index.html</span>
+├── <span class="file">package.json</span>
+├── <span class="file">vite.config.js</span>           <span class="note"># /api → localhost:8000 プロキシ設定</span>
+├── <span class="file">Dockerfile</span>               <span class="note"># 開発用</span>
+└── <span class="file">Dockerfile.production</span>    <span class="note"># 本番用</span>
+
+<span class="dir">services/whisper/</span>            <span class="note"># 独立した STT サービス</span>
+├── <span class="file">app.py</span>
+├── <span class="file">Dockerfile</span>
+├── <span class="file">requirements.txt</span>
+└── <span class="file">README.md</span>
+
+<span class="dir">tests/</span>                        <span class="note"># 統合テスト (ルート)</span>
+├── <span class="file">test_config.py</span>
+├── <span class="file">test_cors.py</span>
+├── <span class="file">test_evaluate.py</span>
+├── <span class="file">test_edge.py</span>
+├── <span class="file">test_llm_context.py</span>
+├── <span class="file">test_normalise.py</span>
+└── <span class="file">test_health.py</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note note-info">
+    <span class="note-icon">ℹ️</span>
+    <div>ルートの <code>src/</code> ディレクトリ (<code>src/api/eval_router.py</code>, <code>src/pronunciation/eval.py</code>) は <code>backend/app/</code> と重複したコードが存在するように見える。どちらが正式な実装かは<a href="#unknown">確認事項</a>を参照。</div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 5. 主要な画面・ルート -->
+<!-- ===================================================================== -->
+<section id="screens">
+  <h2><span class="icon">🖥</span>主要な画面・ルート</h2>
+
+  <h3>画面遷移図</h3>
+  <div class="diagram-wrap">
+    <svg width="720" height="280" viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#6c8fff"/>
+        </marker>
+        <marker id="arr2-b" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+          <polygon points="10 0, 0 3.5, 10 7" fill="#6c8fff"/>
+        </marker>
+      </defs>
+
+      <!-- Home -->
+      <rect x="40" y="90" width="200" height="100" rx="8" fill="#1e2338" stroke="#2a4490" stroke-width="1.5"/>
+      <text x="140" y="115" text-anchor="middle" font-size="13" font-weight="700" fill="#6c8fff">ホーム画面</text>
+      <text x="140" y="132" text-anchor="middle" font-size="11" fill="#7880a0">App.jsx</text>
+      <text x="140" y="150" text-anchor="middle" font-size="10" fill="#555c7a">• API 接続状態確認</text>
+      <text x="140" y="164" text-anchor="middle" font-size="10" fill="#555c7a">• 練習開始ボタン</text>
+      <text x="140" y="178" text-anchor="middle" font-size="10" fill="#555c7a">• サービス起動案内</text>
+
+      <!-- 矢印: Home → Conversation -->
+      <line x1="240" y1="140" x2="298" y2="140" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#arr2)"/>
+      <text x="269" y="132" text-anchor="middle" font-size="10" fill="#6c8fff">開始</text>
+
+      <!-- ConversationScreen -->
+      <rect x="302" y="40" width="220" height="200" rx="8" fill="#1e2338" stroke="#2a4490" stroke-width="1.5"/>
+      <text x="412" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="#6c8fff">会話画面</text>
+      <text x="412" y="82" text-anchor="middle" font-size="11" fill="#7880a0">ConversationScreen.jsx</text>
+      <text x="412" y="102" text-anchor="middle" font-size="10" fill="#555c7a">• シナリオ選択</text>
+      <text x="412" y="116" text-anchor="middle" font-size="10" fill="#555c7a">• レベル選択 (A1-B2)</text>
+      <text x="412" y="130" text-anchor="middle" font-size="10" fill="#555c7a">• 録音開始/停止</text>
+      <text x="412" y="144" text-anchor="middle" font-size="10" fill="#555c7a">• 録音タイマー</text>
+      <text x="412" y="158" text-anchor="middle" font-size="10" fill="#555c7a">• 結果表示</text>
+      <text x="412" y="172" text-anchor="middle" font-size="10" fill="#4ecca3">• transcript / reply_en/ja</text>
+      <text x="412" y="186" text-anchor="middle" font-size="10" fill="#4ecca3">• feedback_ja / next_practice</text>
+      <text x="412" y="200" text-anchor="middle" font-size="10" fill="#f5a623">• エラー / マイクなし</text>
+      <text x="412" y="214" text-anchor="middle" font-size="10" fill="#555c7a">• やり直しボタン</text>
+      <text x="412" y="228" text-anchor="middle" font-size="10" fill="#555c7a">• 戻るボタン</text>
+
+      <!-- 矢印: Conversation → Home -->
+      <line x1="302" y1="168" x2="244" y2="168" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#arr2-b)"/>
+      <text x="272" y="184" text-anchor="middle" font-size="10" fill="#6c8fff">戻る</text>
+
+      <!-- Status Box -->
+      <rect x="570" y="40" width="140" height="200" rx="8" fill="#1a1d27" stroke="#2e3350" stroke-width="1"/>
+      <text x="640" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#d4d8f0">Status 状態機</text>
+      <rect x="582" y="70" width="116" height="20" rx="4" fill="#22263a"/>
+      <text x="640" y="84" text-anchor="middle" font-size="10" fill="#7880a0">IDLE（待機）</text>
+      <rect x="582" y="96" width="116" height="20" rx="4" fill="#22263a"/>
+      <text x="640" y="110" text-anchor="middle" font-size="10" fill="#6c8fff">RECORDING（録音中）</text>
+      <rect x="582" y="122" width="116" height="20" rx="4" fill="#22263a"/>
+      <text x="640" y="136" text-anchor="middle" font-size="10" fill="#f5a623">UPLOADING（送信中）</text>
+      <rect x="582" y="148" width="116" height="20" rx="4" fill="#22263a"/>
+      <text x="640" y="162" text-anchor="middle" font-size="10" fill="#4ecca3">SUCCESS（成功）</text>
+      <rect x="582" y="174" width="116" height="20" rx="4" fill="#22263a"/>
+      <text x="640" y="188" text-anchor="middle" font-size="10" fill="#e05c5c">ERROR（エラー）</text>
+      <rect x="582" y="200" width="116" height="20" rx="4" fill="#22263a"/>
+      <text x="640" y="214" text-anchor="middle" font-size="10" fill="#e05c5c">NO_MIC（マイクなし）</text>
+      <line x1="522" y1="140" x2="568" y2="140" stroke="#2e3350" stroke-dasharray="4,3"/>
+
+    </svg>
+  </div>
+
+  <h3>シナリオ一覧</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>シナリオ ID</th><th>表示名（推測）</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td><code>cafe_order</code></td><td>カフェで注文する</td><td>デフォルトシナリオ</td></tr>
+        <tr><td><code>hotel_checkin</code></td><td>ホテルチェックイン</td><td>—</td></tr>
+        <tr><td><code>directions</code></td><td>道案内</td><td>—</td></tr>
+        <tr><td><code>shopping</code></td><td>ショッピング</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>レベル一覧</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>レベル ID</th><th>CEFR</th><th>説明</th></tr></thead>
+      <tbody>
+        <tr><td><code>A1</code></td><td>A1</td><td>初級</td></tr>
+        <tr><td><code>A2</code></td><td>A2</td><td>初級（デフォルト）</td></tr>
+        <tr><td><code>B1</code></td><td>B1</td><td>中級</td></tr>
+        <tr><td><code>B2</code></td><td>B2</td><td>中上級</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-info">
+    <span class="note-icon">ℹ️</span>
+    <div>フロントエンドの URL ルーティングは React Router を使用していない可能性がある（コードから確認できていない）。ページ切り替えは State による条件分岐と推測される。</div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 6. API 一覧 -->
+<!-- ===================================================================== -->
+<section id="api">
+  <h2><span class="icon">⚡</span>API 一覧</h2>
+
+  <h3>Backend (FastAPI) — ポート 8000</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>メソッド</th><th>パス</th><th>説明</th><th>リクエスト</th><th>レスポンス / エラー</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/</code></td>
+          <td>アプリ情報</td>
+          <td>—</td>
+          <td><code>{name, version, docs}</code></td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/health</code></td>
+          <td>ヘルスチェック</td>
+          <td>—</td>
+          <td><code>HealthResponse</code><br/><code>"ok"</code> or <code>"degraded"</code></td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/health</code></td>
+          <td>ヘルスチェック（旧エイリアス）</td>
+          <td>—</td>
+          <td>/api/health と同じ</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/config</code></td>
+          <td>設定状態確認</td>
+          <td>—</td>
+          <td><code>ConfigResponse</code></td>
+        </tr>
+        <tr>
+          <td><span class="method method-post">POST</span></td>
+          <td><code>/api/chat</code></td>
+          <td>テキスト → AI 会話</td>
+          <td>JSON: <code>ChatRequest</code></td>
+          <td><code>ConversationResponse</code><br/>400: transcript 欠如<br/>503: Ollama 不可</td>
+        </tr>
+        <tr>
+          <td><span class="method method-post">POST</span></td>
+          <td><code>/api/conversation</code></td>
+          <td>音声 → STT → AI 会話</td>
+          <td>multipart: <code>audio</code>, <code>scene</code>, <code>level</code></td>
+          <td><code>ConversationResponse</code><br/>400: MIME 不正<br/>503: サービス不可</td>
+        </tr>
+        <tr>
+          <td><span class="method method-post">POST</span></td>
+          <td><code>/api/audio/upload</code></td>
+          <td>音声ファイルアップロード</td>
+          <td>multipart: <code>file</code></td>
+          <td><code>{file_id, file_path, size, mime_type}</code><br/>400: MIME/サイズ/空ファイル</td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/api/audio/uploads/{file_id}</code></td>
+          <td>音声ファイル取得</td>
+          <td>パスパラメータ: <code>file_id</code></td>
+          <td>ファイルダウンロード<br/>404: 存在しない</td>
+        </tr>
+        <tr>
+          <td><span class="method method-post">POST</span></td>
+          <td><code>/pronunciation</code></td>
+          <td>発音評価 (WER 計算)</td>
+          <td>JSON: <code>PronunciationRequest</code></td>
+          <td><code>PronunciationResponse</code><br/>400: 両入力とも空</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Whisper STT サービス — ポート 8001（ホスト側）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>メソッド</th><th>パス</th><th>説明</th><th>リクエスト</th><th>レスポンス</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/health</code></td>
+          <td>STT ヘルスチェック</td>
+          <td>—</td>
+          <td><code>{status, model, model_status}</code></td>
+        </tr>
+        <tr>
+          <td><span class="method method-post">POST</span></td>
+          <td><code>/transcribe</code></td>
+          <td>音声→テキスト変換</td>
+          <td>multipart: <code>file</code>, <code>model?</code>, <code>language?</code></td>
+          <td><code>{text, language_detected}</code></td>
+        </tr>
+        <tr>
+          <td><span class="method method-get">GET</span></td>
+          <td><code>/models</code></td>
+          <td>利用可能モデル一覧</td>
+          <td>—</td>
+          <td><code>{default_model}</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-info">
+    <span class="note-icon">ℹ️</span>
+    <div>FastAPI の自動ドキュメントは <code>http://localhost:8000/docs</code> (Swagger UI) および <code>http://localhost:8000/redoc</code> で確認可能。</div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 7. データモデル -->
+<!-- ===================================================================== -->
+<section id="models">
+  <h2><span class="icon">📐</span>データモデル</h2>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>ChatRequest</h3>
+      <pre><code>{
+  level:      str = "A2"           # CEFR レベル
+  scenario:   str = "カフェで注文する"  # シナリオ
+  transcript: str | None           # 発話テキスト（事前 STT 済み）
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>ConversationResponse</h3>
+      <pre><code>{
+  transcript:    str  # STT 後のユーザー発話
+  reply_en:      str  # AI 英語返答
+  reply_ja:      str  # AI 日本語訳
+  feedback_ja:   str  # 文法・発音フィードバック（日本語）
+  next_practice: str  # 次の練習フレーズ提案
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>HealthResponse</h3>
+      <pre><code>{
+  status:     "ok" | "degraded"
+  ollama:     "ok" | "not_available"
+  stt:        "ok" | "not_available"
+  upload_dir: str
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>ConfigResponse</h3>
+      <pre><code>{
+  configured: list[str]  # 設定済み環境変数名
+  missing:    list[str]  # 未設定環境変数名
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>PronunciationRequest</h3>
+      <pre><code>{
+  target_sentence: str        # 評価対象テキスト
+  transcript:      str        # ユーザー発話テキスト
+  sentence_mode:   bool = False  # 文末記号ゲート
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>PronunciationResponse</h3>
+      <pre><code>{
+  wer:                  float      # [0.0, 1.0]
+  missing_words:        list[str]  # 抜けた単語
+  extra_words:          list[str]  # 余分な単語
+  target_word_count:    int
+  transcript_word_count:int
+  accuracy:             float      # 1.0 - wer
+  is_valid:             bool       # 両入力に単語あり
+  llm_context:          dict       # LLM フィードバック生成用情報
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="note note-warn">
+    <span class="note-icon">⚠️</span>
+    <div>データベース (<code>db/</code> ディレクトリ) は現在 <strong>未実装</strong>。会話履歴・学習進捗データの永続化は Phase 3 で SQLite 追加予定。現状は音声ファイルのみ <code>data/recordings/</code> に保存される（一時ファイル・削除タイミングは要確認）。</div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 8. 主な処理フロー -->
+<!-- ===================================================================== -->
+<section id="flows">
+  <h2><span class="icon">🔄</span>主な処理フロー</h2>
+
+  <h3>1. 音声会話フロー（メインフロー）</h3>
+
+  <div class="diagram-wrap">
+    <svg width="740" height="360" viewBox="0 0 740 360" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="fa" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#6c8fff"/>
+        </marker>
+        <marker id="fa-g" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#4ecca3"/>
+        </marker>
+        <marker id="fa-o" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#f5a623"/>
+        </marker>
+        <marker id="fa-r" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#e05c5c"/>
+        </marker>
+      </defs>
+
+      <!-- ステップボックス群 -->
+      <!-- Step 1 -->
+      <rect x="10" y="20" width="160" height="56" rx="6" fill="#1e2338" stroke="#2a4490"/>
+      <text x="90" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8fff">① ブラウザ録音</text>
+      <text x="90" y="60" text-anchor="middle" font-size="10" fill="#7880a0">MediaRecorder API</text>
+      <text x="90" y="72" text-anchor="middle" font-size="10" fill="#555c7a">ConversationScreen.jsx</text>
+
+      <line x1="170" y1="48" x2="210" y2="48" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 2 -->
+      <rect x="214" y="20" width="160" height="56" rx="6" fill="#1e2338" stroke="#2a4490"/>
+      <text x="294" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8fff">② 音声アップロード</text>
+      <text x="294" y="60" text-anchor="middle" font-size="10" fill="#7880a0">POST /api/conversation</text>
+      <text x="294" y="72" text-anchor="middle" font-size="10" fill="#555c7a">multipart: audio, scene, level</text>
+
+      <line x1="374" y1="48" x2="414" y2="48" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 3 -->
+      <rect x="418" y="20" width="160" height="56" rx="6" fill="#1e2338" stroke="#2a4490"/>
+      <text x="498" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8fff">③ ファイル保存</text>
+      <text x="498" y="60" text-anchor="middle" font-size="10" fill="#7880a0">data/recordings/</text>
+      <text x="498" y="72" text-anchor="middle" font-size="10" fill="#555c7a">一時ファイル</text>
+
+      <!-- 下向き矢印 -->
+      <line x1="498" y1="76" x2="498" y2="116" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 4 -->
+      <rect x="418" y="120" width="160" height="56" rx="6" fill="#1a3b2a" stroke="#2a5545"/>
+      <text x="498" y="143" text-anchor="middle" font-size="11" font-weight="700" fill="#4ecca3">④ STT 変換</text>
+      <text x="498" y="160" text-anchor="middle" font-size="10" fill="#7880a0">POST whisper:/transcribe</text>
+      <text x="498" y="172" text-anchor="middle" font-size="10" fill="#555c7a">→ transcript テキスト</text>
+
+      <!-- 戻り矢印（左方向） -->
+      <line x1="418" y1="148" x2="214" y2="148" stroke="#4ecca3" stroke-width="1.5" marker-end="url(#fa-g)"/>
+
+      <!-- Step 5 -->
+      <rect x="10" y="120" width="200" height="56" rx="6" fill="#1a3b2a" stroke="#2a5545"/>
+      <text x="110" y="143" text-anchor="middle" font-size="11" font-weight="700" fill="#4ecca3">⑤ バリデーション</text>
+      <text x="110" y="160" text-anchor="middle" font-size="10" fill="#7880a0">transcript 空チェック</text>
+      <text x="110" y="172" text-anchor="middle" font-size="10" fill="#555c7a">Ollama 到達確認</text>
+
+      <line x1="110" y1="176" x2="110" y2="216" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 6 -->
+      <rect x="10" y="220" width="200" height="56" rx="6" fill="#3b2a10" stroke="#5a4015"/>
+      <text x="110" y="243" text-anchor="middle" font-size="11" font-weight="700" fill="#f5a623">⑥ プロンプト生成</text>
+      <text x="110" y="260" text-anchor="middle" font-size="10" fill="#7880a0">conversation.md テンプレート</text>
+      <text x="110" y="272" text-anchor="middle" font-size="10" fill="#555c7a">level / scenario / utterance</text>
+
+      <line x1="210" y1="248" x2="310" y2="248" stroke="#f5a623" stroke-width="1.5" marker-end="url(#fa-o)"/>
+
+      <!-- Step 7 -->
+      <rect x="314" y="220" width="200" height="56" rx="6" fill="#3b2a10" stroke="#5a4015"/>
+      <text x="414" y="243" text-anchor="middle" font-size="11" font-weight="700" fill="#f5a623">⑦ LLM 生成</text>
+      <text x="414" y="260" text-anchor="middle" font-size="10" fill="#7880a0">POST Ollama:/api/generate</text>
+      <text x="414" y="272" text-anchor="middle" font-size="10" fill="#555c7a">timeout 120s</text>
+
+      <line x1="514" y1="248" x2="614" y2="248" stroke="#f5a623" stroke-width="1.5" marker-end="url(#fa-o)"/>
+
+      <!-- Step 8 -->
+      <rect x="618" y="220" width="112" height="56" rx="6" fill="#3b2a10" stroke="#5a4015"/>
+      <text x="674" y="243" text-anchor="middle" font-size="11" font-weight="700" fill="#f5a623">⑧ JSON 解析</text>
+      <text x="674" y="260" text-anchor="middle" font-size="10" fill="#7880a0">reply_en/ja</text>
+      <text x="674" y="272" text-anchor="middle" font-size="10" fill="#7880a0">feedback_ja</text>
+
+      <line x1="674" y1="276" x2="674" y2="316" stroke="#6c8fff" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 9 -->
+      <rect x="518" y="320" width="268" height="32" rx="6" fill="#1e2338" stroke="#2a4490"/>
+      <text x="652" y="340" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8fff">⑨ ConversationResponse 返却 → UI 表示</text>
+
+      <!-- 一時ファイル削除 -->
+      <rect x="10" y="300" width="200" height="32" rx="6" fill="#2a1010" stroke="#602020"/>
+      <text x="110" y="320" text-anchor="middle" font-size="11" fill="#e05c5c">一時ファイル削除</text>
+    </svg>
+  </div>
+
+  <h3>2. 発音評価フロー</h3>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>入力受付</strong>
+        <p>POST /pronunciation に <code>target_sentence</code> (お手本テキスト)、<code>transcript</code> (ユーザー発話)、<code>sentence_mode</code> を送信。</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>sentence_mode ゲート</strong>
+        <p>sentence_mode=True かつ target が <code>.</code><code>!</code><code>?</code> で終わらない場合、評価をスキップ。</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>テキスト正規化</strong>
+        <p>小文字化 → 句読点除去（内部アポストロフィ保持） → 空白整理。</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>WER 計算（Levenshtein）</strong>
+        <p>単語レベルの編集距離を DP で計算。<br/>WER = 編集距離 / max(target 単語数, transcript 単語数)</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>差分単語抽出</strong>
+        <p>DP バックトレースで match / substitution / deletion (missing) / insertion (extra) を分類。</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <strong>LLM コンテキスト生成</strong>
+        <p>WER・accuracy・missing/extra words を辞書として LLM フィードバック生成用に返却。</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>3. ヘルスチェックフロー</h3>
+  <div class="card">
+    <pre><code>GET /api/health
+  │
+  ├── ollama_available()  → GET {OLLAMA_BASE_URL}/api/tags  (timeout: 3s)
+  │     OK? → ollama: "ok"
+  │     NG? → ollama: "not_available"
+  │
+  └── stt_available()     → GET {STT_BASE_URL}/health      (timeout: 3s)
+        OK? → stt: "ok"
+        NG? → stt: "not_available"
+
+status: "ok" ← 両方 OK のとき
+status: "degraded" ← 一方でも NG のとき</code></pre>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 9. 環境変数 -->
+<!-- ===================================================================== -->
+<section id="env">
+  <h2><span class="icon">⚙️</span>環境変数</h2>
+
+  <h3>バックエンド（<code>SPEAKNEST_</code> プレフィックス）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>変数名</th><th>デフォルト値</th><th>説明</th><th>必須</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>SPEAKNEST_OLLAMA_BASE_URL</code></td>
+          <td><code>http://192.168.1.103:11434</code></td>
+          <td>Ollama API エンドポイント</td>
+          <td>推奨変更</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_OLLAMA_MODEL</code></td>
+          <td><code>gemma4:e4b</code></td>
+          <td>使用 LLM モデル名</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_STT_BASE_URL</code></td>
+          <td><code>http://whisper:8000</code></td>
+          <td>Whisper STT エンドポイント（Docker 内）</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_STT_MODEL</code></td>
+          <td><code>medium</code></td>
+          <td>Whisper モデルサイズ</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_UPLOAD_DIR</code></td>
+          <td><code>data/recordings</code></td>
+          <td>音声ファイル保存先</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_ALLOWED_AUDIO_MIME_TYPES</code></td>
+          <td><code>audio/webm,audio/wav,audio/mp4,audio/mpeg,audio/x-wav</code></td>
+          <td>許可する音声 MIME タイプ（カンマ区切り）</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_MAX_UPLOAD_SIZE_MB</code></td>
+          <td><code>30</code></td>
+          <td>最大アップロードサイズ (MB)</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_DEFAULT_SCENARIO</code></td>
+          <td><code>カフェで注文する</code></td>
+          <td>デフォルト会話シナリオ</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_DEFAULT_LEVEL</code></td>
+          <td><code>A2</code></td>
+          <td>デフォルト CEFR レベル</td>
+          <td>任意</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_CORS_ORIGINS</code></td>
+          <td><code>*</code></td>
+          <td>CORS 許可オリジン（カンマ区切り or *）</td>
+          <td>本番では要変更</td>
+        </tr>
+        <tr>
+          <td><code>SPEAKNEST_DEBUG</code></td>
+          <td><code>false</code></td>
+          <td>デバッグモード</td>
+          <td>任意</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>フロントエンド（<code>VITE_</code> プレフィックス）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>変数名</th><th>デフォルト値</th><th>説明</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>VITE_API_BASE_URL</code></td>
+          <td><code>http://localhost:8000</code></td>
+          <td>バックエンド API のベース URL</td>
+        </tr>
+        <tr>
+          <td><code>VITE_USE_MOCK</code></td>
+          <td><code>false</code></td>
+          <td><code>true</code> にするとモックデータを使用（API 不要）</td>
+        </tr>
+        <tr>
+          <td><code>OLLAMA_BASE_URL</code></td>
+          <td>—</td>
+          <td>docker-compose のフロントエンドサービスに定義（用途は推測）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-danger">
+    <span class="note-icon">🔒</span>
+    <div><strong>本番環境への注意:</strong> <code>SPEAKNEST_CORS_ORIGINS=*</code> はすべてのオリジンを許可するため、本番では具体的なオリジンを指定すること。また、<code>SPEAKNEST_OLLAMA_BASE_URL</code> のデフォルト値は特定の LAN IP アドレスなので必ず変更すること。</div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 10. Docker 構成 -->
+<!-- ===================================================================== -->
+<section id="docker">
+  <h2><span class="icon">🐳</span>Docker 構成</h2>
+
+  <h3>サービス一覧（docker-compose.yml）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>サービス名</th><th>ベースイメージ</th><th>ポート</th><th>依存</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>frontend</code></td>
+          <td>node:20-alpine</td>
+          <td>3000:3000</td>
+          <td>backend (started)</td>
+          <td>Vite 開発サーバー</td>
+        </tr>
+        <tr>
+          <td><code>backend</code></td>
+          <td>python:3.12-slim</td>
+          <td>8000:8000</td>
+          <td>whisper (healthy)</td>
+          <td>uvicorn</td>
+        </tr>
+        <tr>
+          <td><code>whisper</code></td>
+          <td>python:3.12-slim + ffmpeg</td>
+          <td>8001:8000</td>
+          <td>—</td>
+          <td>初回起動は model ダウンロードで数分かかる</td>
+        </tr>
+        <tr>
+          <td><code>ollama</code></td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td><strong>コメントアウト</strong>。外部ホスト直参照</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>起動順序（ヘルスチェック依存）</h3>
+  <div class="card">
+    <pre><code>① whisper コンテナ起動
+   └─ ヘルスチェック: GET /health  (30s間隔, timeout 5s, retries 3, start-period 300s)
+② backend コンテナ起動  ← whisper が healthy になってから
+③ frontend コンテナ起動 ← backend が started になってから</code></pre>
+  </div>
+
+  <div class="note note-warn">
+    <span class="note-icon">⚠️</span>
+    <div>Whisper の <code>start-period: 300s</code> (5分) は、初回の model ダウンロード時間を考慮したもの。2回目以降の起動ではもう少し早い。</div>
+  </div>
+
+  <h3>ボリューム</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ボリューム名</th><th>マウント先</th><th>サービス</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>data</code></td><td><code>/data</code></td><td>backend</td><td>音声ファイル一時保存</td></tr>
+        <tr><td><code>recordings</code></td><td><code>/recordings</code></td><td>backend</td><td>録音ファイル保存（重複あり・要確認）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 11. 認証・認可 -->
+<!-- ===================================================================== -->
+<section id="auth">
+  <h2><span class="icon">🔐</span>認証・認可</h2>
+
+  <div class="card">
+    <div class="note note-info" style="margin: 0;">
+      <span class="note-icon">ℹ️</span>
+      <div>
+        <strong>現在（Phase 1）は認証・認可の仕組みは一切実装されていない。</strong>
+        <ul style="margin: 8px 0 0 16px; line-height: 2;">
+          <li>API キー・JWT トークン等は不使用</li>
+          <li>CORS は <code>*</code>（全オリジン許可）がデフォルト</li>
+          <li>ローカル環境・LAN 内での使用を前提とした設計</li>
+          <li>Ollama・Whisper ともに認証なし</li>
+        </ul>
+        <p style="margin-top: 8px;">公開・チーム運用する場合はリバースプロキシ（nginx 等）で認証層を追加する必要がある。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 12. 外部連携 -->
+<!-- ===================================================================== -->
+<section id="external">
+  <h2><span class="icon">🔌</span>外部連携</h2>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>Ollama (LLM)</h3>
+      <table>
+        <tbody>
+          <tr><td style="color:var(--clr-muted)">目的</td><td>会話生成・フィードバック生成</td></tr>
+          <tr><td style="color:var(--clr-muted)">デフォルトURL</td><td><code>http://192.168.1.103:11434</code></td></tr>
+          <tr><td style="color:var(--clr-muted)">使用モデル</td><td><code>gemma4:e4b</code></td></tr>
+          <tr><td style="color:var(--clr-muted)">エンドポイント</td><td><code>POST /api/generate</code></td></tr>
+          <tr><td style="color:var(--clr-muted)">タイムアウト</td><td>120秒（生成）/ 3秒（ヘルスチェック）</td></tr>
+          <tr><td style="color:var(--clr-muted)">ヘルスチェック</td><td><code>GET /api/tags</code></td></tr>
+          <tr><td style="color:var(--clr-muted)">出力形式</td><td>JSON（<code>reply_en</code>, <code>reply_ja</code>, <code>feedback_ja</code>, <code>next_practice</code>）</td></tr>
+          <tr><td style="color:var(--clr-muted)">注意</td><td>レスポンスから JSON 抽出処理あり（マークダウンコードブロック等の除去）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Whisper STT (faster-whisper)</h3>
+      <table>
+        <tbody>
+          <tr><td style="color:var(--clr-muted)">目的</td><td>音声→テキスト変換（Speech-to-Text）</td></tr>
+          <tr><td style="color:var(--clr-muted)">Docker URL</td><td><code>http://whisper:8000</code></td></tr>
+          <tr><td style="color:var(--clr-muted)">ホスト側URL</td><td><code>http://localhost:8001</code></td></tr>
+          <tr><td style="color:var(--clr-muted)">モデル</td><td><code>medium</code>（Whisper medium）</td></tr>
+          <tr><td style="color:var(--clr-muted)">エンドポイント</td><td><code>POST /transcribe</code></td></tr>
+          <tr><td style="color:var(--clr-muted)">タイムアウト</td><td>60秒（変換）/ 3秒（ヘルスチェック）</td></tr>
+          <tr><td style="color:var(--clr-muted)">依存</td><td>ffmpeg（Dockerfile でインストール）</td></tr>
+          <tr><td style="color:var(--clr-muted)">言語設定</td><td>自動検出（language パラメータ渡し可能）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Piper TTS <span class="pill pill-plan">Phase 2 予定</span></h3>
+    <p style="color:var(--clr-muted)">AI 返答のテキストを音声合成して再生する機能。現時点では未実装。Docker サービスとして追加予定。</p>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 13. 起動方法 -->
+<!-- ===================================================================== -->
+<section id="startup">
+  <h2><span class="icon">🚀</span>起動方法</h2>
+
+  <h3>Docker Compose での起動（推奨）</h3>
+  <div class="card">
+    <pre><code># 1. Ollama が LAN の別ホストで動作していることを確認
+#    (または SPEAKNEST_OLLAMA_BASE_URL を変更)
+
+# 2. 全サービス起動
+docker compose up
+
+# バックグラウンドで起動
+docker compose up -d
+
+# ログ確認
+docker compose logs -f
+
+# 停止
+docker compose down</code></pre>
+  </div>
+
+  <h3>ローカル開発環境（Docker なし）</h3>
+  <div class="two-col">
+    <div class="card">
+      <h4>バックエンド</h4>
+      <pre><code>cd backend
+python -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+
+pip install -r requirements.txt
+
+# 環境変数設定
+export SPEAKNEST_OLLAMA_BASE_URL=http://localhost:11434
+
+# サーバー起動
+uvicorn app.main:app --reload --port 8000</code></pre>
+    </div>
+    <div class="card">
+      <h4>フロントエンド</h4>
+      <pre><code>cd frontend
+npm install
+
+# 環境変数設定 (.env.local に記述)
+# VITE_API_BASE_URL=http://localhost:8000
+# VITE_USE_MOCK=true  ← API なしで動作確認時
+
+npm run dev
+# → http://localhost:3000</code></pre>
+    </div>
+  </div>
+
+  <h3>アクセス先</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>サービス</th><th>URL</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td>フロントエンド</td><td><code>http://localhost:3000</code></td><td>ブラウザでアクセス</td></tr>
+        <tr><td>バックエンド API</td><td><code>http://localhost:8000</code></td><td>—</td></tr>
+        <tr><td>API ドキュメント (Swagger)</td><td><code>http://localhost:8000/docs</code></td><td>FastAPI 自動生成</td></tr>
+        <tr><td>API ドキュメント (ReDoc)</td><td><code>http://localhost:8000/redoc</code></td><td>FastAPI 自動生成</td></tr>
+        <tr><td>Whisper STT</td><td><code>http://localhost:8001</code></td><td>直接アクセスは基本不要</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Ollama セットアップ</h3>
+  <div class="card">
+    <pre><code># scripts/setup-ollama-model.sh を実行（推測）
+bash scripts/setup-ollama-model.sh
+
+# または手動でモデルをプル
+ollama pull gemma4:e4b</code></pre>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 14. テスト方法 -->
+<!-- ===================================================================== -->
+<section id="tests">
+  <h2><span class="icon">🧪</span>テスト方法</h2>
+
+  <h3>バックエンドテスト（<code>backend/tests/</code>）</h3>
+  <div class="card">
+    <pre><code>cd backend
+source .venv/bin/activate
+
+# 全テスト実行
+pytest tests/ -v
+
+# カバレッジ付き
+pytest tests/ --cov=app --cov-report=html</code></pre>
+  </div>
+
+  <h3>統合テスト（ルート <code>tests/</code>）</h3>
+  <div class="card">
+    <pre><code>cd /path/to/SpeakNest
+
+# 全統合テスト実行
+pytest tests/ -v
+
+# 特定ファイルのみ
+pytest tests/test_evaluate.py -v
+pytest tests/test_normalise.py -v</code></pre>
+  </div>
+
+  <h3>テスト対象・件数</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>テストファイル</th><th>テスト数</th><th>対象</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>backend/tests/test_audio.py</code></td><td>5件</td><td>音声アップロード・取得</td></tr>
+        <tr><td><code>backend/tests/test_chat.py</code></td><td>3件</td><td>会話 API</td></tr>
+        <tr><td><code>backend/tests/test_health.py</code></td><td>1件</td><td>ヘルスチェック</td></tr>
+        <tr><td><code>backend/tests/test_pronunciation.py</code></td><td>2件</td><td>発音評価 API</td></tr>
+        <tr><td><code>backend/tests/test_config.py</code></td><td>1件</td><td>設定 API</td></tr>
+        <tr><td><code>tests/test_config.py</code></td><td>6件（async）</td><td>設定バリデーション</td></tr>
+        <tr><td><code>tests/test_cors.py</code></td><td>2件</td><td>CORS ヘッダー</td></tr>
+        <tr><td><code>tests/test_evaluate.py</code></td><td>多数</td><td>発音評価ロジック</td></tr>
+        <tr><td><code>tests/test_edge.py</code></td><td>多数</td><td>エッジケース</td></tr>
+        <tr><td><code>tests/test_llm_context.py</code></td><td>3件</td><td>LLM コンテキスト生成</td></tr>
+        <tr><td><code>tests/test_normalise.py</code></td><td>パラメータ化</td><td>テキスト正規化</td></tr>
+        <tr><td><code>tests/test_health.py</code></td><td>—</td><td>ヘルス統合テスト</td></tr>
+        <tr><td><strong>合計</strong></td><td><strong>約 25件以上</strong></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-warn">
+    <span class="note-icon">⚠️</span>
+    <div>フロントエンドの JavaScript/E2E テストは現時点で存在しない。<code>scripts/e2e_checklist.py</code> が存在するが、手動チェックリストの可能性がある（要確認）。</div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 15. 開発フェーズ -->
+<!-- ===================================================================== -->
+<section id="phases">
+  <h2><span class="icon">📅</span>開発フェーズ</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>フェーズ</th><th>項目</th><th>状態</th></tr></thead>
+      <tbody>
+        <tr>
+          <td rowspan="7"><strong>Phase 1</strong><br/>MVP<br/>（現在）</td>
+          <td>Docker Compose セットアップ</td>
+          <td><span class="pill pill-done">✅ 完了</span></td>
+        </tr>
+        <tr>
+          <td>Backend/Frontend Dockerfile</td>
+          <td><span class="pill pill-done">✅ 完了</span></td>
+        </tr>
+        <tr>
+          <td>環境変数による設定管理</td>
+          <td><span class="pill pill-done">✅ 完了</span></td>
+        </tr>
+        <tr>
+          <td>Whisper STT 統合</td>
+          <td><span class="pill pill-done">✅ 完了</span></td>
+        </tr>
+        <tr>
+          <td>Ollama LLM 統合</td>
+          <td><span class="pill pill-done">✅ 完了</span></td>
+        </tr>
+        <tr>
+          <td>基本会話・フィードバック機能</td>
+          <td><span class="pill pill-done">✅ 完了</span></td>
+        </tr>
+        <tr>
+          <td>発音評価（WER ベース）</td>
+          <td><span class="pill pill-done">✅ 完了</span></td>
+        </tr>
+        <tr>
+          <td rowspan="3"><strong>Phase 2</strong><br/>音声合成</td>
+          <td>Piper TTS サービス Docker 化</td>
+          <td><span class="pill pill-plan">📋 予定</span></td>
+        </tr>
+        <tr>
+          <td>AI 返答の音声合成</td>
+          <td><span class="pill pill-plan">📋 予定</span></td>
+        </tr>
+        <tr>
+          <td>UI での音声再生</td>
+          <td><span class="pill pill-plan">📋 予定</span></td>
+        </tr>
+        <tr>
+          <td rowspan="4"><strong>Phase 3</strong><br/>学習機能</td>
+          <td>会話シナリオエンジン</td>
+          <td><span class="pill pill-no">⭕ 未着手</span></td>
+        </tr>
+        <tr>
+          <td>学習進捗トラッキング・履歴</td>
+          <td><span class="pill pill-no">⭕ 未着手</span></td>
+        </tr>
+        <tr>
+          <td>レポート・ダッシュボード</td>
+          <td><span class="pill pill-no">⭕ 未着手</span></td>
+        </tr>
+        <tr>
+          <td>SQLite データベース</td>
+          <td><span class="pill pill-no">⭕ 未着手</span></td>
+        </tr>
+        <tr>
+          <td rowspan="3"><strong>Phase 4</strong><br/>改善</td>
+          <td>モデルファインチューニング</td>
+          <td><span class="pill pill-no">⭕ 未着手</span></td>
+        </tr>
+        <tr>
+          <td>音素レベル発音評価</td>
+          <td><span class="pill pill-no">⭕ 未着手</span></td>
+        </tr>
+        <tr>
+          <td>カスタムシナリオビルダー</td>
+          <td><span class="pill pill-no">⭕ 未着手</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 16. エラー処理 -->
+<!-- ===================================================================== -->
+<section id="errors">
+  <h2><span class="icon">🚨</span>エラー処理</h2>
+
+  <h3>HTTP エラーコード</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>HTTP コード</th><th>発生ケース</th><th>対象エンドポイント</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>400</code></td>
+          <td>MIME タイプ不正 / ファイル空 / サイズ超過 / transcript 欠如 / 両入力とも空</td>
+          <td>audio/upload, chat, conversation, pronunciation</td>
+        </tr>
+        <tr>
+          <td><code>404</code></td>
+          <td>ファイル ID が存在しない</td>
+          <td>audio/uploads/{file_id}</td>
+        </tr>
+        <tr>
+          <td><code>503</code></td>
+          <td>Ollama 未到達 / STT サービス未到達</td>
+          <td>chat, conversation</td>
+        </tr>
+        <tr>
+          <td><code>500</code></td>
+          <td>予期せぬ例外（一般例外キャッチ）</td>
+          <td>全エンドポイント</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>フロントエンドエラー状態</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>状態</th><th>発生条件</th><th>UI 対応</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>STATUS.NO_MIC</code></td>
+          <td>マイクへのアクセス拒否 (NotAllowedError) / マイクなし (NotFoundError)</td>
+          <td>マイク未使用メッセージ表示</td>
+        </tr>
+        <tr>
+          <td><code>STATUS.ERROR</code></td>
+          <td>API 呼び出し失敗</td>
+          <td>エラーメッセージ + 「やり直す」ボタン</td>
+        </tr>
+        <tr>
+          <td>API 接続失敗（ホーム）</td>
+          <td>GET /api/health 失敗</td>
+          <td>"disconnected" 状態表示 + サービス起動案内</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 17. 未確認・確認事項 -->
+<!-- ===================================================================== -->
+<section id="unknown">
+  <h2><span class="icon">❓</span>未確認・確認事項</h2>
+
+  <div class="note note-warn">
+    <span class="note-icon">⚠️</span>
+    <div>以下は実装コードから確認できなかった、または推測にとどまる事項。実装者への確認を推奨。</div>
+  </div>
+
+  <h3>重複コードの整理</h3>
+  <div class="card">
+    <p>ルートディレクトリに <code>src/api/eval_router.py</code> と <code>src/pronunciation/eval.py</code> が存在するが、<code>backend/app/</code> 以下に同名ファイルがある。</p>
+    <ul style="margin: 8px 0 0 20px; line-height: 2;">
+      <li>どちらが正式な実装か？</li>
+      <li>ルート <code>src/</code> は削除予定か実験用か？</li>
+      <li>ルート <code>tests/</code> はどちらのコードをテストしているか？</li>
+    </ul>
+  </div>
+
+  <h3>一時ファイルのライフサイクル</h3>
+  <div class="card">
+    <p>音声ファイルは <code>data/recordings/</code> に保存されるが、会話処理後に削除されるかどうかがコードから明確に確認できていない。</p>
+    <ul style="margin: 8px 0 0 20px; line-height: 2;">
+      <li>正常処理後に一時ファイルが削除されているか？</li>
+      <li>エラー時のファイル残留はあるか？</li>
+      <li><code>data</code> と <code>recordings</code> の2つのボリュームの役割分担は？</li>
+    </ul>
+  </div>
+
+  <h3>フロントエンドルーティング</h3>
+  <div class="card">
+    <p>React Router の使用が確認できていない。ページ切り替えが state ベースなのか、URL ベースなのかが不明。</p>
+  </div>
+
+  <h3>feedback.md プロンプト</h3>
+  <div class="card">
+    <p><code>backend/app/prompts/feedback.md</code> が存在するが、現在のコードに統合されているか確認できていない。conversation.md のみ使用されている可能性が高い。</p>
+  </div>
+
+  <h3>e2e_checklist.py の内容</h3>
+  <div class="card">
+    <p><code>scripts/e2e_checklist.py</code> の詳細が未確認。手動チェックリストなのか、自動テストスクリプトなのかが不明。</p>
+  </div>
+
+  <h3>OLLAMA_BASE_URL（フロントエンド）</h3>
+  <div class="card">
+    <p>docker-compose のフロントエンドサービスに <code>OLLAMA_BASE_URL</code> 環境変数が定義されているが、フロントエンドコードでどのように使用されているか未確認（フロントエンドから直接 Ollama を呼ぶのは非推奨のため、用途が謎）。</p>
+  </div>
+
+  <h3>Dockerfile.production の詳細</h3>
+  <div class="card">
+    <p>フロントエンドに <code>Dockerfile.production</code> が存在するが、本番ビルドの設定（nginx での静的ファイル配信等）の詳細が未確認。</p>
+  </div>
+
+  <h3>テストの実行環境依存</h3>
+  <div class="card">
+    <p>一部のテスト（test_cors.py, test_config.py etc.）がどの Python 環境・パスから実行されるべきかが不明。<code>conftest.py</code> のスコープ（backend vs root）を要確認。</p>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!-- 18. 次に読むべきファイル一覧 -->
+<!-- ===================================================================== -->
+<section id="nextfiles">
+  <h2><span class="icon">📚</span>次に読むべきファイル一覧</h2>
+
+  <p>新規参加の開発者が効率よく全体を把握するために、以下の順番でファイルを読むことを推奨。</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>ファイル</th><th>優先度</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><code>docker-compose.yml</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>サービス全体構成・ポート・依存関係の全体像</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><code>backend/app/main.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>FastAPI アプリの起点・ルーター登録・CORS 設定</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><code>backend/app/config.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>全設定項目・デフォルト値・ヘルスチェック実装</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><code>backend/app/schemas.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>データモデル全定義（API の入出力型）</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><code>backend/app/routers/chat_logic.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>メイン処理フロー（STT→LLM→レスポンス）のコアロジック</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><code>backend/app/routers/chat.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>会話 API エンドポイント定義</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><code>backend/app/services/ollama_service.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>Ollama LLM 連携の実装詳細</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><code>backend/app/services/stt_service.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>Whisper STT 連携の実装詳細</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><code>backend/app/prompts/conversation.md</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>LLM に渡すプロンプトの実体・出力 JSON 形式</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><code>backend/app/pronunciation/eval.py</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>発音評価アルゴリズム（WER・DP）の実装</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><code>frontend/src/pages/ConversationScreen.jsx</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>メイン UI・状態機・録音ロジック</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td><code>frontend/src/services/conversationApi.js</code></td>
+          <td><span class="pill pill-done">必読</span></td>
+          <td>API 呼び出し・モックデータ・シナリオ/レベル定義</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td><code>frontend/src/App.jsx</code></td>
+          <td><span class="pill pill-plan">推奨</span></td>
+          <td>ホーム画面・画面切り替えロジック</td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td><code>services/whisper/app.py</code></td>
+          <td><span class="pill pill-plan">推奨</span></td>
+          <td>Whisper STT サービスの FastAPI 実装</td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td><code>backend/app/routers/audio.py</code></td>
+          <td><span class="pill pill-plan">推奨</span></td>
+          <td>音声ファイル管理（upload/download）</td>
+        </tr>
+        <tr>
+          <td>16</td>
+          <td><code>backend/tests/conftest.py</code></td>
+          <td><span class="pill pill-plan">推奨</span></td>
+          <td>テスト Fixture・モック設定の理解</td>
+        </tr>
+        <tr>
+          <td>17</td>
+          <td><code>tests/test_evaluate.py</code></td>
+          <td><span class="pill pill-plan">推奨</span></td>
+          <td>発音評価の仕様が網羅的にテストで定義されている</td>
+        </tr>
+        <tr>
+          <td>18</td>
+          <td><code>frontend/vite.config.js</code></td>
+          <td><span class="pill pill-no">参考</span></td>
+          <td>開発時プロキシ設定</td>
+        </tr>
+        <tr>
+          <td>19</td>
+          <td><code>scripts/e2e_checklist.py</code></td>
+          <td><span class="pill pill-no">参考</span></td>
+          <td>E2E チェック手順（内容要確認）</td>
+        </tr>
+        <tr>
+          <td>20</td>
+          <td><code>backend/app/prompts/feedback.md</code></td>
+          <td><span class="pill pill-no">参考</span></td>
+          <td>未統合のフィードバックプロンプト（Phase 2以降?）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-ok">
+    <span class="note-icon">✅</span>
+    <div>この仕様書は実装コードから自動解析・整理したものです。<strong>推測箇所</strong>は本文内に <span class="pill pill-guess">推測</span> として記載しています。不明点は「<a href="#unknown">確認事項</a>」セクションにまとめています。実装が変更された際は仕様書も合わせて更新してください。</div>
+  </div>
+
+  <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--clr-border); color: var(--clr-muted); font-size: 12px; text-align: center;">
+    SpeakNest アプリ仕様書 — 生成日: 2026-05-17 — ソース: ソースコード自動解析
+  </div>
+</section>
+
+</content-area>
+</div><!-- .main -->
+</div><!-- .layout -->
+</body>
+</html>
