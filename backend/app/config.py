@@ -36,9 +36,13 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "*"
 
+    # DB
+    db_path: str = "/data/speaknest.db"
+
 
 settings = Settings()
 UPLOAD_DIR = Path(settings.upload_dir)
+DB_FILE_PATH = Path(settings.db_path)
 
 
 def ensure_dirs() -> None:
