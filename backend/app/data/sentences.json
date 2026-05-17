@@ -1,0 +1,107 @@
+[
+  {
+    "id": "shadow-001",
+    "category": "daily",
+    "level": "A1",
+    "text": "I would like a cup of coffee, please.",
+    "translation_ja": "コーヒーを一杯ください。"
+  },
+  {
+    "id": "shadow-002",
+    "category": "daily",
+    "level": "A2",
+    "text": "What time does the store close today?",
+    "translation_ja": "今日は店は何時に閉まりますか？"
+  },
+  {
+    "id": "shadow-003",
+    "category": "daily",
+    "level": "A2",
+    "text": "Could you tell me how to get to the station?",
+    "translation_ja": "駅への行き方を教えてもらえますか？"
+  },
+  {
+    "id": "shadow-004",
+    "category": "daily",
+    "level": "B1",
+    "text": "I have been living in this city for about five years.",
+    "translation_ja": "私はこの街でおよそ5年住んでいます。"
+  },
+  {
+    "id": "shadow-005",
+    "category": "daily",
+    "level": "B2",
+    "text": "If I had known about the delay, I would have taken the train instead.",
+    "translation_ja": "遅延を知っていれば、電車に乗っていたでしょうに。"
+  },
+  {
+    "id": "shadow-006",
+    "category": "travel",
+    "level": "A1",
+    "text": "Where is the nearest subway station?",
+    "translation_ja": "一番近い地下鉄ステーションはどこですか？"
+  },
+  {
+    "id": "shadow-007",
+    "category": "travel",
+    "level": "A2",
+    "text": "Can you recommend a good restaurant nearby?",
+    "translation_ja": "近くのオススメのレストランはありませんか？"
+  },
+  {
+    "id": "shadow-008",
+    "category": "travel",
+    "level": "B1",
+    "text": "I would like to book a room for two nights.",
+    "translation_ja": "2泊の部屋を予約したいです。"
+  },
+  {
+    "id": "shadow-009",
+    "category": "travel",
+    "level": "B2",
+    "text": "Was the flight delayed due to bad weather?",
+    "translation_ja": "飛行機の遅延は悪天候のためですか？"
+  },
+  {
+    "id": "shadow-010",
+    "category": "business",
+    "level": "A2",
+    "text": "Let me introduce myself. I am from the sales department.",
+    "translation_ja": "自己紹介させていただきます。営業担当の〇〇です。"
+  },
+  {
+    "id": "shadow-011",
+    "category": "business",
+    "level": "B1",
+    "text": "Could we schedule a meeting for next Tuesday?",
+    "translation_ja": "火曜日に会議を設定していただけますか？"
+  },
+  {
+    "id": "shadow-012",
+    "category": "business",
+    "level": "B2",
+    "text": "We should consider both the cost and the timeline before making a decision.",
+    "translation_ja": "決定する前に、費用とスケジュールの両方を考慮すべきです。"
+  },
+  {
+    "id": "shadow-013",
+    "category": "tech",
+    "level": "B1",
+    "text": "The application crashes when the user uploads a large file.",
+    "translation_ja": "ユーザーが大きなファイルをアップロードすると、アプリケーションがクラッシュします。"
+  },
+  {
+    "id": "shadow-014",
+    "category": "tech",
+    "level": "B2",
+    "text": "We need to refactor the database queries to improve performance.",
+    "translation_ja": "パフォーマンスを向上させるために、データベースクエリをリファクタリングする必要があります。"
+  },
+  {
+    "id": "shadow-015",
+    "category": "tech",
+    "level": "B2",
+    "text": "The API endpoints should return consistent JSON responses.",
+    "translation_ja": "APIエンドエンドは整合性のあるJSONレスポンスを返す必要があります。"
+  }
+]
