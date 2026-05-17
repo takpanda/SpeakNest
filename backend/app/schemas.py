@@ -23,4 +23,5 @@ class HealthResponse(BaseModel):
     status: str
     ollama: str
     stt: str
+    tts: str = "not_available"
     upload_dir: str
