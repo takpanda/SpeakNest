@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     stt_base_url: str = "http://whisper:8000"
     stt_model: str = "medium"
 
+    # TTS settings (piper)
+    tts_base_url: str = "http://piper:5000"
+
     # Upload settings
     upload_dir: str = "data/recordings"
     allowed_audio_mime_types: str = "audio/webm,audio/wav,audio/mp4,audio/mpeg,audio/x-wav"
@@ -64,6 +67,18 @@ def stt_available() -> bool:
     base = settings.stt_base_url.rstrip("/")
     try:
         resp = httpx.get(f"{base}/health", timeout=3.0)
+        return resp.status_code == 200
+    except httpx.RequestError:
+        return False
+
+
+def tts_available() -> bool:
+    """Check if TTS (Piper) service is reachable."""
+    import httpx
+
+    base = settings.tts_base_url.rstrip("/")
+    try:
+        resp = httpx.get(f"{base}/api/health", timeout=3.0)
         return resp.status_code == 200
     except httpx.RequestError:
         return False
