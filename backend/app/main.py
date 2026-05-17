@@ -33,6 +33,9 @@ async def startup() -> None:
     from app.config import ensure_dirs
     ensure_dirs()
 
+    from app.db.database import create_db_and_tables
+    create_db_and_tables()
+
     print(f"SpeakNest backend starting...")
     print(f"  Ollama:    {settings.ollama_base_url}")
     print(f"  STT:       {settings.stt_base_url}")
