@@ -19,12 +19,14 @@ from app.routers import chat as chat_router
 from app.routers import audio as audio_router
 from app.routers import config as config_router
 from app.routers import eval_router as eval_router
+from app.routers import shadowing as shadowing_router
 
 app.include_router(health_router.router)
 app.include_router(chat_router.router)
 app.include_router(audio_router.router)
 app.include_router(config_router.router)
 app.include_router(eval_router.router)
+app.include_router(shadowing_router.router)
 
 @app.on_event("startup")
 async def startup() -> None:

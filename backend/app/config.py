@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     default_scenario: str = "カフェで注文する"
     default_level: str = "A2"
 
+    # TTS settings (Piper)
+    tts_base_url: str = "http://localhost:5000"
+
     # CORS
     cors_origins: str = "*"
 
