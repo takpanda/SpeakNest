@@ -65,7 +65,10 @@ class TestChatEndpoint:
 
     def test_chat_ollama_unavailable(self, client):
         """503 when Ollama is not reachable."""
-        with patch("app.config.ollama_available", return_value=False):
+        with patch(
+            "app.routers.chat_logic.ollama_available",
+            return_value=False,
+        ):
             res = client.post(
                 "/api/chat/",
                 json={"level": "A2", "scenario": "カフェで注文する", "transcript": "hello"},
