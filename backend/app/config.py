@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "*"
 
+    # TTS
+    tts_base_url: str = ""
+
 
 settings = Settings()
 UPLOAD_DIR = Path(settings.upload_dir)
@@ -67,3 +70,24 @@ def stt_available() -> bool:
         return resp.status_code == 200
     except httpx.RequestError:
         return False
+
+
+def tts_available() -> bool:
+    """Check if TTS service is reachable and configured."""
+    if not settings.tts_base_url:
+        return False
+    import httpx
+
+    base = settings.tts_base_url.rstrip("/")
+    try:
+        resp = httpx.get(f"{base}/health", timeout=3.0)
+        return resp.status_code == 200
+    except httpx.RequestError:
+        return False
+
+
+def get_tts_base_url() -> str | None:
+    """Return the configured TTS base URL or None if not configured."""
+    if settings.tts_base_url:
+        return settings.tts_base_url
+    return None
